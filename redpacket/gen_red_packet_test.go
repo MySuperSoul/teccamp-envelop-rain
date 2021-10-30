@@ -1,23 +1,12 @@
-package src
+package redpacket
 
 import (
-	"math/rand"
+	"envelop-rain/common"
 	"testing"
-	"time"
 )
 
-func TestRand(t *testing.T) {
-	loop_times := 100
-	for i := 0; i < loop_times; i++ {
-		ratio := Rand()
-		if ratio < 0 || ratio > 1 {
-			t.Fatalf("Out of boundary, value is %f", ratio)
-		}
-	}
-}
-
 func TestGetRedPacket(t *testing.T) {
-	rand.Seed(time.Now().Unix())
+	common.SetRandomSeed()
 	cases := []struct {
 		total_num, remain_num                           int
 		total_money, remain_money, min_money, max_money float32
