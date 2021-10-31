@@ -2,6 +2,7 @@ package configs
 
 import (
 	"encoding/json"
+	"envelop-rain/common"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -51,4 +52,14 @@ func SetConfigToRedis(config *SystemConfig, redisdb *redis.Client) {
 		log.Fatal("Set config to redis error.")
 		panic(err)
 	}
+}
+
+func GetSingleValueFromRedis(redisdb *redis.Client, key string, datatype string) interface{} {
+	val, err := redisdb.Get(key).Result()
+	if err != nil {
+		log.Fatalf("Read from key: %s failed", key)
+		panic(err)
+	}
+
+	return common.ConvertString(val, datatype)
 }

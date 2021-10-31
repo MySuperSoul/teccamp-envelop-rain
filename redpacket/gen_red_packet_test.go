@@ -19,12 +19,12 @@ func TestGetRedPacket(t *testing.T) {
 	for _, c := range cases {
 		// iterate each red packet to check
 		for i := 0; i < c.total_num; i++ {
-			red_packet := GetRedPacket(c.remain_num, c.remain_money, c.min_money, c.max_money)
-			if red_packet.value < c.min_money || red_packet.value > c.max_money {
-				t.Fatalf("Get error on packet value, %f is not in range %f -> %f", red_packet.value, c.min_money, c.max_money)
+			red_packet := GetRedPacket(int32(c.remain_num), c.remain_money, c.min_money, c.max_money)
+			if red_packet.Value < c.min_money || red_packet.Value > c.max_money {
+				t.Fatalf("Get error on packet value, %f is not in range %f -> %f", red_packet.Value, c.min_money, c.max_money)
 			}
 			c.remain_num--
-			c.remain_money -= red_packet.value
+			c.remain_money -= red_packet.Value
 		}
 
 		// check the final remain money, can not exceed the total money
