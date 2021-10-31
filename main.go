@@ -44,8 +44,8 @@ func main() {
 }
 
 func SnatchHandler(c *gin.Context) {
-	uid, _ := c.GetPostForm("uid")
-	log.Info("snatch by user: %s", uid)
+	uid := common.ConvertString(c.PostForm("uid"), "int32").(int32)
+	log.Infof("snatch by user: %d", uid)
 
 	// first to judge whether has packet left
 	remain_num := configs.GetSingleValueFromRedis(redisdb, "RemainNum", "int32").(int32)
@@ -63,32 +63,97 @@ func SnatchHandler(c *gin.Context) {
 	}
 
 	// Then perform later operations
+	// get user information
+	user := db.User{UserID: uid, Amount: 0, Balance: 0.}
+	mysql.Where(db.User{UserID: uid}).FirstOrCreate(&user)
+
+	// Then to check the maxamount
+	max_amount := configs.GetSingleValueFromRedis(redisdb, "MaxAmount", "int32").(int32)
+	if user.Amount == max_amount {
+		c.JSON(200, gin.H{"code": SNATCH_EXCEED_MAX_AMOUNT, "msg": SNATCH_EXCEED_MAX_AMOUNT_MESSAGE, "data": gin.H{}})
+		return
+	}
+
 	// First generate the red packet
 	packet := redpacket.GetRedPacket(remain_num, remain_money, sysconfig.MinMoney, sysconfig.MaxMoney)
-	packet.UserID = common.ConvertString(uid, "int32").(int32)
-
-	// get user information and update to database
-	user := db.User{UserID: packet.UserID, Amount: 0, Balance: 0.}
-	mysql.Where(db.User{UserID: packet.UserID}).FirstOrCreate(&user)
+	packet.UserID = uid
 
 	// update remain value to redis
 	redisdb.Decr("RemainNum")
 	redisdb.Set("RemainMoney", remain_money-packet.Value, 0)
 
+	// update user amount and insert the red packet
+	user.Amount++
+	mysql.Model(&user).Update("amount", user.Amount)
+	mysql.Create(&packet)
+
 	// send message
 	c.JSON(200, gin.H{
 		"code": SNATCH_SUCCESS,
 		"msg":  SNATCH_SUCCESS_MESSAGE,
-		"data": gin.H{},
+		"data": gin.H{"envelop_id": packet.PacketID, "max_count": max_amount, "cur_count": user.Amount},
 	})
-
-	// insert into database
 }
 
 func OpenHandler(c *gin.Context) {
+	userid := common.ConvertString(c.PostForm("uid"), "int32").(int32)
+	packetid := common.ConvertString(c.PostForm("envelop_id"), "int64").(int64)
+	log.Infof("Envelop %d opened by %d.", packetid, userid)
 
+	var user db.User
+	var packet db.RedPacket
+	result := mysql.First(&user, userid)
+	if result.RowsAffected == 0 {
+		log.Fatalf("Invalid user id: %d, block him.", userid)
+		c.JSON(200, gin.H{"code": OPEN_INVALID_USER, "msg": OPEN_INVALID_USER_MESSAGE, "data": gin.H{}})
+		return
+	}
+	result = mysql.First(&packet, packetid)
+	if result.RowsAffected == 0 {
+		log.Fatalf("Invalid envelop id: %d, block it.", packetid)
+		c.JSON(200, gin.H{"code": OPEN_INVALID_PACKET, "msg": OPEN_INVALID_PACKET_MESSAGE, "data": gin.H{}})
+		return
+	}
+
+	if packet.Opened {
+		log.Errorf("Envelop %d has been opened yet.", packetid)
+		c.JSON(200, gin.H{"code": OPEN_REPEAT, "msg": OPEN_REPEAT_MESSAGE, "data": gin.H{}})
+		return
+	}
+
+	if userid != packet.UserID {
+		log.Errorf("User %d don't own envelop %d", userid, packetid)
+		c.JSON(200, gin.H{"code": OPEN_NOT_MATCH, "msg": OPEN_NOT_MATCH_MESSAGE, "data": gin.H{}})
+		return
+	}
+
+	user.Balance += packet.Value
+	packet.Opened = true
+	mysql.Save(&user)
+	mysql.Save(&packet)
+
+	c.JSON(200, gin.H{"code": OPEN_SUCCESS, "msg": OPEN_SUCCESS_MESSAGE, "data": gin.H{"value": packet.Value}})
 }
 
 func WalletListHandler(c *gin.Context) {
+	uid := common.ConvertString(c.PostForm("uid"), "int32").(int32)
+	log.Infof("Query %d's wallet", uid)
 
+	var user db.User
+	mysql.First(&user, uid)
+
+	packets, _ := common.GetRedPacketsByUID(mysql, uid)
+	envelops := []gin.H{}
+	for _, p := range packets {
+		envelops = append(envelops, p.JsonFormat())
+	}
+
+	c.JSON(200, gin.H{
+		"code": WALLET_SUCCESS,
+		"msg":  WALLET_SUCCESS_MESSAGE,
+		"data": gin.H{
+			"amount":       user.Balance,
+			"envelop_list": envelops,
+		},
+	})
 }

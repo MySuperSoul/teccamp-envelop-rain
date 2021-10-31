@@ -10,7 +10,7 @@ import (
 
 const (
 	USERNAME   = "root"
-	PASSWORD   = "Rothyu980908"
+	PASSWORD   = "yourpassword" // use your password here
 	DB_NAME    = "envelop-rain"
 	MYSQL_ADDR = "127.0.0.1:3306"
 )
