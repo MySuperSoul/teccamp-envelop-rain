@@ -104,13 +104,13 @@ func OpenHandler(c *gin.Context) {
 	var packet db.RedPacket
 	result := mysql.First(&user, userid)
 	if result.RowsAffected == 0 {
-		log.Fatalf("Invalid user id: %d, block him.", userid)
+		log.Errorf("Invalid user id: %d, block him.", userid)
 		c.JSON(200, gin.H{"code": OPEN_INVALID_USER, "msg": OPEN_INVALID_USER_MESSAGE, "data": gin.H{}})
 		return
 	}
 	result = mysql.First(&packet, packetid)
 	if result.RowsAffected == 0 {
-		log.Fatalf("Invalid envelop id: %d, block it.", packetid)
+		log.Errorf("Invalid envelop id: %d, block it.", packetid)
 		c.JSON(200, gin.H{"code": OPEN_INVALID_PACKET, "msg": OPEN_INVALID_PACKET_MESSAGE, "data": gin.H{}})
 		return
 	}

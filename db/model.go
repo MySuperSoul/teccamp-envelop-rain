@@ -8,7 +8,7 @@ type User struct {
 
 type RedPacket struct {
 	PacketID  int64 `gorm:"primaryKey"`
-	UserID    int32
+	UserID    int32 `gorm:"index:UserID"`
 	Value     float32
 	Opened    bool
 	Timestamp int64
