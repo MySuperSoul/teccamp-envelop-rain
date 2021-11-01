@@ -12,3 +12,8 @@
 ``` bash
 bash test.sh
 ```
+
+## 2. 运行Server
+```bash
+go build && ./envelop-rain
+```
