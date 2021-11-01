@@ -132,15 +132,15 @@ func OpenHandler(c *gin.Context) {
 	mysql.Save(&user)
 	mysql.Save(&packet)
 
-	c.JSON(200, gin.H{"code": OPEN_SUCCESS, "msg": OPEN_SUCCESS_MESSAGE, "data": gin.H{"value": packet.Value}})
+	c.JSON(200, gin.H{"code": OPEN_SUCCESS, "msg": OPEN_SUCCESS_MESSAGE, "data": gin.H{"value": int32(packet.Value * 100)}})
 }
 
 func WalletListHandler(c *gin.Context) {
 	uid := common.ConvertString(c.PostForm("uid"), "int32").(int32)
 	log.Infof("Query %d's wallet", uid)
 
-	var user db.User
-	mysql.First(&user, uid)
+	user := db.User{UserID: uid, Amount: 0, Balance: 0.}
+	mysql.Where(db.User{UserID: uid}).FirstOrCreate(&user)
 
 	packets, _ := common.GetRedPacketsByUID(mysql, uid)
 	envelops := []gin.H{}
@@ -152,7 +152,7 @@ func WalletListHandler(c *gin.Context) {
 		"code": WALLET_SUCCESS,
 		"msg":  WALLET_SUCCESS_MESSAGE,
 		"data": gin.H{
-			"amount":       user.Balance,
+			"amount":       int32(user.Balance * 100),
 			"envelop_list": envelops,
 		},
 	})
