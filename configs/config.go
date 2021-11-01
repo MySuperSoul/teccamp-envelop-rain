@@ -9,6 +9,8 @@
 package configs
 
 import (
+	"path"
+	"runtime"
 	"strings"
 
 	"github.com/fsnotify/fsnotify"
@@ -26,8 +28,14 @@ func init() {
 }
 
 func initConfig() *viper.Viper {
+	var abPath string
+	_, filename, _, ok := runtime.Caller(1)
+	if ok {
+		abPath = path.Dir(filename)
+	}
+
 	Config := viper.New()
-	Config.AddConfigPath("configs")
+	Config.AddConfigPath(abPath)
 	Config.SetConfigType("yaml")
 	Config.SetConfigName("config")
 	Config.AutomaticEnv()
