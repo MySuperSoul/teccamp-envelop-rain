@@ -20,7 +20,7 @@ func InitServer() {
 	// set random seed
 	common.SetRandomSeed()
 	// get system config
-	sysconfig = configs.GenerateConfigFromFile(CONFIG_PATH)
+	sysconfig = configs.GenerateConfigFromFile()
 	// get redis client connection
 	redisdb = db.GetRedisClient()
 	// get mysql connection
@@ -48,8 +48,8 @@ func SnatchHandler(c *gin.Context) {
 	log.Infof("snatch by user: %d", uid)
 
 	// first to judge whether has packet left
-	remain_num := configs.GetSingleValueFromRedis(redisdb, "RemainNum", "int32").(int32)
-	remain_money := configs.GetSingleValueFromRedis(redisdb, "RemainMoney", "float32").(float32)
+	remain_num := db.GetSingleValueFromRedis(redisdb, "RemainNum", "int32").(int32)
+	remain_money := db.GetSingleValueFromRedis(redisdb, "RemainMoney", "float32").(float32)
 
 	if remain_num == 0 {
 		c.JSON(200, gin.H{"code": SNATCH_NO_RED_PACKET, "msg": SNATCH_NO_RED_PACKET_MESSAGE, "data": gin.H{}})
@@ -57,7 +57,7 @@ func SnatchHandler(c *gin.Context) {
 	}
 
 	// Then to judge whether the user is lucky enough
-	if p := configs.GetSingleValueFromRedis(redisdb, "P", "float32").(float32); common.Rand() > p {
+	if p := db.GetSingleValueFromRedis(redisdb, "P", "float32").(float32); common.Rand() > p {
 		c.JSON(200, gin.H{"code": SNATCH_NOT_LUCKY, "msg": SNATCH_NOT_LUCKY_MESSAGE, "data": gin.H{}})
 		return
 	}
@@ -68,7 +68,7 @@ func SnatchHandler(c *gin.Context) {
 	mysql.Where(db.User{UserID: uid}).FirstOrCreate(&user)
 
 	// Then to check the maxamount
-	max_amount := configs.GetSingleValueFromRedis(redisdb, "MaxAmount", "int32").(int32)
+	max_amount := db.GetSingleValueFromRedis(redisdb, "MaxAmount", "int32").(int32)
 	if user.Amount == max_amount {
 		c.JSON(200, gin.H{"code": SNATCH_EXCEED_MAX_AMOUNT, "msg": SNATCH_EXCEED_MAX_AMOUNT_MESSAGE, "data": gin.H{}})
 		return
@@ -142,7 +142,7 @@ func WalletListHandler(c *gin.Context) {
 	var user db.User
 	mysql.First(&user, uid)
 
-	packets, _ := common.GetRedPacketsByUID(mysql, uid)
+	packets, _ := db.GetRedPacketsByUID(mysql, uid)
 	envelops := []gin.H{}
 	for _, p := range packets {
 		envelops = append(envelops, p.JsonFormat())

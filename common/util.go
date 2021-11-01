@@ -1,12 +1,17 @@
+/*
+ * @Author: your name
+ * @Date: 2021-11-01 13:02:08
+ * @LastEditTime: 2021-11-01 14:48:29
+ * @LastEditors: Please set LastEditors
+ * @Description: In User Settings Edit
+ * @FilePath: /teccamp-envelop-rain/common/util.go
+ */
 package common
 
 import (
-	"envelop-rain/db"
 	"math/rand"
 	"strconv"
 	"time"
-
-	"gorm.io/gorm"
 )
 
 func SetRandomSeed() {
@@ -46,15 +51,4 @@ func ConvertString(val string, datatype string) interface{} {
 	default:
 		return val
 	}
-}
-
-func GetRedPacketsByUID(mysql *gorm.DB, uid int32) ([]*db.RedPacket, error) {
-	var packets []*db.RedPacket
-	conditions := map[string]interface{}{
-		"user_id": uid,
-	}
-	if err := mysql.Where(conditions).Order("timestamp").Find(&packets).Error; err != nil {
-		return nil, err
-	}
-	return packets, nil
 }
