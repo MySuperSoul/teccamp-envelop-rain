@@ -7,8 +7,10 @@
  # @FilePath: /teccamp-envelop-rain/tmp.sh
 ### 
 
-go test -c  configs/config_test.go configs/config.go && ./configs.test
+go test -c  common/util_test.go common/util.go && ./common.test
 
-go test -c  db/db_test.go db/redis.go db/mysql.go  db/model.go && ./db.test
+go test -c  db/db_test.go db/redis.go db/mysql.go db/model.go && ./db.test
+
+go test -c redpacket/gen_red_packet_test.go redpacket/gen_red_packet.go && ./redpacket.test
 
 rm *.test
