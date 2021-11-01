@@ -1,0 +1,18 @@
+common:
+    TotalMoney: 100000.0
+    TotalNum: 1000
+    MinMoney: 1.0
+    MaxMoney: 200.0
+    MaxAmount: 5
+    P: 0.7
+
+Database:
+    UserName: root
+    PassWord: 980825
+    DB_Name: envelop-rain
+    MysqlAddr: 127.0.0.1:3306
+
+Redis:
+    RedisAddr: 127.0.0.1:6379
+    RedisPassword: 
+    RedisPoolSize: 100
