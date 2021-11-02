@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-11-01 13:02:08
- * @LastEditTime: 2021-11-01 14:48:29
+ * @LastEditTime: 2021-11-02 20:59:03
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /teccamp-envelop-rain/common/util.go
@@ -9,10 +9,11 @@
 package common
 
 import (
-	"log"
 	"math/rand"
 	"strconv"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 func SetRandomSeed() {
@@ -32,7 +33,7 @@ func Rand() float32 {
 
 func ConvertString(val string, datatype string) interface{} {
 	if val == "" {
-		log.Fatal("(func ConvertString) Null String from Post request!")
+		log.Error("(func ConvertString) Null String from Post request!")
 	}
 
 	switch datatype {

@@ -1,12 +1,12 @@
 /*
  * @Author: your name
  * @Date: 2021-11-01 14:56:45
- * @LastEditTime: 2021-11-01 15:57:24
+ * @LastEditTime: 2021-11-02 19:19:27
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /teccamp-envelop-rain/db/db_test.go
  */
-package db
+package repository
 
 import (
 	"envelop-rain/configs"

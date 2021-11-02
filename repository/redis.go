@@ -1,12 +1,12 @@
 /*
  * @Author: your name
  * @Date: 2021-11-01 13:02:08
- * @LastEditTime: 2021-11-01 16:35:34
+ * @LastEditTime: 2021-11-02 19:19:06
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /teccamp-envelop-rain/db/redis.go
  */
-package db
+package repository
 
 import (
 	"envelop-rain/common"

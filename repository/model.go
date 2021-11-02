@@ -1,4 +1,12 @@
-package db
+/*
+ * @Author: your name
+ * @Date: 2021-11-02 18:58:08
+ * @LastEditTime: 2021-11-02 19:20:51
+ * @LastEditors: your name
+ * @Description: In User Settings Edit
+ * @FilePath: /teccamp-envelop-rain/repository/model.go
+ */
+package repository
 
 type User struct {
 	UserID  int32 `gorm:"primaryKey"`

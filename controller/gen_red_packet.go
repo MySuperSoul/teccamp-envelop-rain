@@ -1,8 +1,16 @@
-package redpacket
+/*
+ * @Author: your name
+ * @Date: 2021-11-01 13:02:08
+ * @LastEditTime: 2021-11-02 21:04:36
+ * @LastEditors: Please set LastEditors
+ * @Description: In User Settings Edit
+ * @FilePath: /teccamp-envelop-rain/controller/gen_red_packet.go
+ */
+package controller
 
 import (
 	"envelop-rain/common"
-	"envelop-rain/db"
+	db "envelop-rain/repository"
 	"time"
 )
 
