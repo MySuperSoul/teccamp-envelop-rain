@@ -28,6 +28,7 @@ func initDBConfig() DBConfig {
 		configs.GlobalConfig.GetString("Database.Password"),
 		configs.GlobalConfig.GetString("Database.DB_Name"),
 		configs.GlobalConfig.GetString("Database.MysqlAddr")}
+
 	return db_config
 }
 

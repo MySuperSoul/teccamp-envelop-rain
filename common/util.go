@@ -9,6 +9,7 @@
 package common
 
 import (
+	"log"
 	"math/rand"
 	"strconv"
 	"time"
@@ -30,6 +31,10 @@ func Rand() float32 {
 }
 
 func ConvertString(val string, datatype string) interface{} {
+	if val == "" {
+		log.Fatal("(func ConvertString) Null String from Post request!")
+	}
+
 	switch datatype {
 	case "int":
 		ival, _ := strconv.Atoi(val)

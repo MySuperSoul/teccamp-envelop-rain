@@ -8,8 +8,8 @@ common:
 
 Database:
     UserName: root
-    PassWord: 980825
-    DB_Name: envelop-rain
+    PassWord:
+    DB_Name: envelop
     MysqlAddr: 127.0.0.1:3306
 
 Redis:

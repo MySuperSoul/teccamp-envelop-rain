@@ -31,6 +31,12 @@ func InitServer() {
 	configs.SetConfigToRedis(&sysconfig, redisdb)
 }
 
+// 程序启动之前配置参数
+func init() {
+	// fmt.Println("Call init")
+
+}
+
 func main() {
 	// init server
 	InitServer()
@@ -56,11 +62,11 @@ func SnatchHandler(c *gin.Context) {
 		return
 	}
 
-	// Then to judge whether the user is lucky enough
-	if p := db.GetSingleValueFromRedis(redisdb, "P", "float32").(float32); common.Rand() > p {
-		c.JSON(200, gin.H{"code": SNATCH_NOT_LUCKY, "msg": SNATCH_NOT_LUCKY_MESSAGE, "data": gin.H{}})
-		return
-	}
+	// // Then to judge whether the user is lucky enough
+	// if p := db.GetSingleValueFromRedis(redisdb, "P", "float32").(float32); common.Rand() > p {
+	// 	c.JSON(200, gin.H{"code": SNATCH_NOT_LUCKY, "msg": SNATCH_NOT_LUCKY_MESSAGE, "data": gin.H{}})
+	// 	return
+	// }
 
 	// Then perform later operations
 	// get user information
@@ -71,6 +77,12 @@ func SnatchHandler(c *gin.Context) {
 	max_amount := db.GetSingleValueFromRedis(redisdb, "MaxAmount", "int32").(int32)
 	if user.Amount == max_amount {
 		c.JSON(200, gin.H{"code": SNATCH_EXCEED_MAX_AMOUNT, "msg": SNATCH_EXCEED_MAX_AMOUNT_MESSAGE, "data": gin.H{}})
+		return
+	}
+
+	// Then to judge whether the user is lucky enough
+	if p := db.GetSingleValueFromRedis(redisdb, "P", "float32").(float32); common.Rand() > p {
+		c.JSON(200, gin.H{"code": SNATCH_NOT_LUCKY, "msg": SNATCH_NOT_LUCKY_MESSAGE, "data": gin.H{}})
 		return
 	}
 
