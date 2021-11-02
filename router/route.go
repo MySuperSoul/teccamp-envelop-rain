@@ -37,12 +37,6 @@ func SnatchHandler(c *gin.Context) {
 		return
 	}
 
-	// // Then to judge whether the user is lucky enough
-	// if p := db.GetSingleValueFromRedis(redisdb, "P", "float32").(float32); common.Rand() > p {
-	// 	c.JSON(200, gin.H{"code": SNATCH_NOT_LUCKY, "msg": SNATCH_NOT_LUCKY_MESSAGE, "data": gin.H{}})
-	// 	return
-	// }
-
 	// Then perform later operations
 	// get user information
 	user := db.User{UserID: uid, Amount: 0, Balance: 0.}

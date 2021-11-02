@@ -7,12 +7,6 @@ import (
 	"syscall"
 )
 
-// 程序启动之前配置参数
-func init() {
-	// fmt.Println("Call init")
-
-}
-
 func main() {
 	router.APIServerRun()
 

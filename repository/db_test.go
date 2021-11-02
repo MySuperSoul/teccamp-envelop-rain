@@ -103,9 +103,9 @@ func TestMysql(t *testing.T) {
 	db.Create(&user)
 	// user表查找
 	var userDB User
-	db.Where(user).First(&userDB)
+	db.Where(&user).First(&userDB)
 	if userDB != user {
 		t.Fatal("select from user failed")
 	}
-
+	db.Delete(&user)
 }

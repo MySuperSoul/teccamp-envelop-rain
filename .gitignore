@@ -1,5 +1,5 @@
 .idea/*
 pkg/
 .vscode/
-envelop-rain
+*envelop-rain*
 *.test
