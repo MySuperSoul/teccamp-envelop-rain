@@ -39,6 +39,7 @@ func initConfig() *viper.Viper {
 	Config.SetConfigName("config.yaml")
 	Config.AddConfigPath(abPath)
 	Config.AddConfigPath(".")
+	Config.AddConfigPath("./configs/")
 	Config.AutomaticEnv()
 	Config.SetEnvPrefix("Envelop_Rain")
 	replacer := strings.NewReplacer(".", "_")
