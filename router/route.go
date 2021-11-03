@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-11-02 19:16:51
- * @LastEditTime: 2021-11-02 21:39:18
+ * @LastEditTime: 2021-11-03 21:26:08
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /teccamp-envelop-rain/router/route.go
@@ -19,13 +19,16 @@ import (
 )
 
 func SnatchHandler(c *gin.Context) {
-	uidStr := c.PostForm("uid")
-	if uidStr == "" {
-		c.JSON(http.StatusNotFound, gin.H{"code": SNATCH_EMPTY_UID, "msg": SNATCH_EMPTY_UID_MESSAGE, "data": gin.H{}})
+	json_str := make(map[string]int32)
+	if err := c.BindJSON(&json_str); err != nil {
+		c.JSON(http.StatusOK, gin.H{"code": SNATCH_JSON_PARSE_ERROR, "msg": SNATCH_JSON_PARSE_ERROR_MESSAGE, "data": gin.H{}})
 		return
 	}
-
-	uid := common.ConvertString(uidStr, "int32").(int32)
+	if _, ok := json_str["uid"]; !ok {
+		c.JSON(http.StatusOK, gin.H{"code": SNATCH_EMPTY_UID, "msg": SNATCH_EMPTY_UID_MESSAGE, "data": gin.H{}})
+		return
+	}
+	uid := json_str["uid"]
 	log.Infof("snatch by user: %d", uid)
 
 	// first to judge whether has packet left
@@ -76,16 +79,20 @@ func SnatchHandler(c *gin.Context) {
 	})
 }
 
+type uid_envelopid struct {
+	Uid      int32 `json:"uid"`
+	Packetid int64 `json:"envelop_id"`
+}
+
 func OpenHandler(c *gin.Context) {
-	uidStr := c.PostForm("uid")
-	pocketidStr := c.PostForm("envelop_id")
-	if uidStr == "" || pocketidStr == "" {
-		c.JSON(http.StatusNotFound, gin.H{"code": OPEN_EMPTY_ID, "msg": OPEN_EMPTY_ID_MESSAGE, "data": gin.H{}})
+	var pair_id uid_envelopid
+	if err := c.ShouldBindJSON(&pair_id); err != nil {
+		c.JSON(http.StatusOK, gin.H{"code": OPEN_JSON_PARSE_ERROR, "msg": OPEN_JSON_PARSE_ERROR_MESSAGE, "data": gin.H{}})
 		return
 	}
 
-	userid := common.ConvertString(uidStr, "int32").(int32)
-	packetid := common.ConvertString(pocketidStr, "int64").(int64)
+	userid := pair_id.Uid
+	packetid := pair_id.Packetid
 	log.Infof("Envelop %d opened by %d.", packetid, userid)
 
 	var user db.User
@@ -124,16 +131,16 @@ func OpenHandler(c *gin.Context) {
 }
 
 func WalletListHandler(c *gin.Context) {
-	uidStr := c.PostForm("uid")
-	if uidStr == "" {
-		c.JSON(http.StatusNotFound, gin.H{
-			"code": WALLET_EMPTY_ID,
-			"msg":  WALLET_EMPTY_ID_MESSAGE,
-			"data": gin.H{},
-		})
+	json_str := make(map[string]int32)
+	if err := c.BindJSON(&json_str); err != nil {
+		c.JSON(http.StatusOK, gin.H{"code": WALLET_JSON_PARSE_ERROR, "msg": WALLET_JSON_PARSE_ERROR_MESSAGE, "data": gin.H{}})
 		return
 	}
-	uid := common.ConvertString(uidStr, "int32").(int32)
+	if _, ok := json_str["uid"]; !ok {
+		c.JSON(http.StatusOK, gin.H{"code": WALLET_EMPTY_ID, "msg": WALLET_EMPTY_ID_MESSAGE, "data": gin.H{}})
+		return
+	}
+	uid := json_str["uid"]
 	log.Infof("Query %d's wallet", uid)
 
 	user := db.User{UserID: uid, Amount: 0, Balance: 0.}
