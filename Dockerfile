@@ -12,5 +12,5 @@ FROM centos:7
 # COPY --from=builder /envelop-rain/configs/ /root/configs/
 COPY envelop-rain /root/server
 COPY configs/ /root/configs/
-EXPOSE 8080
-CMD /root/server
+# EXPOSE 8080
+# CMD /root/server
