@@ -7,7 +7,7 @@
 # WORKDIR /root
 # RUN go build -o /root/app
 
-FROM centos:7
+FROM cr-cn-beijing.volces.com/group6/centos:7
 # COPY --from=builder /root/app /root/server
 # COPY --from=builder /root/configs/ /root/configs/
 COPY envelop-rain /root/server
