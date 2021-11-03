@@ -7,7 +7,7 @@ ENV GOPROXY=https://goproxy.cn,direct
 # WORKDIR /root
 RUN go build
 
-FROM ubuntu
+FROM centos:7
 COPY --from=builder envelop-rain /root/server
 COPY --from=builder /configs/ /root/configs/
 WORKDIR /root
