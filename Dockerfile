@@ -7,10 +7,11 @@
 # WORKDIR /root
 # RUN go build -o /root/app
 
-FROM cr-cn-beijing.volces.com/group6/centos:7
+FROM cr-cn-beijing.volces.com/group7/centos:7
 # COPY --from=builder /root/app /root/server
 # COPY --from=builder /root/configs/ /root/configs/
-COPY envelop-rain /root/server
-COPY ./configs/ /root/configs/
+WORKDIR /root
+COPY envelop-rain ./server
+COPY ./configs/ ./configs/
 EXPOSE 8080
 CMD /root/server
