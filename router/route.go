@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-11-02 19:16:51
- * @LastEditTime: 2021-11-02 21:39:18
+ * @LastEditTime: 2021-11-03 21:26:08
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /teccamp-envelop-rain/router/route.go
@@ -20,13 +20,17 @@ import (
 )
 
 func SnatchHandler(c *gin.Context) {
-	uidStr := c.PostForm("uid")
-	if uidStr == "" {
-		c.JSON(http.StatusNotFound, gin.H{"code": SNATCH_EMPTY_UID, "msg": SNATCH_EMPTY_UID_MESSAGE, "data": gin.H{}})
+	json_str := make(map[string]int32)
+	if err := c.BindJSON(&json_str); err != nil {
+		c.JSON(http.StatusOK, gin.H{"code": SNATCH_JSON_PARSE_ERROR, "msg": SNATCH_JSON_PARSE_ERROR_MESSAGE, "data": gin.H{}})
 		return
 	}
-
-	uid := common.ConvertString(uidStr, "int32").(int32)
+	if _, ok := json_str["uid"]; !ok {
+		c.JSON(http.StatusOK, gin.H{"code": SNATCH_EMPTY_UID, "msg": SNATCH_EMPTY_UID_MESSAGE, "data": gin.H{}})
+		return
+	}
+	uid := json_str["uid"]
+	uidStr := fmt.Sprintf("%d", uid)
 	log.Infof("snatch by user: %d", uid)
 
 	// first to judge whether has packet left
@@ -83,14 +87,20 @@ func SnatchHandler(c *gin.Context) {
 	})
 }
 
+type uid_envelopid struct {
+	Uid      int32 `json:"uid"`
+	Packetid int64 `json:"envelop_id"`
+}
+
 func OpenHandler(c *gin.Context) {
-	uid := c.PostForm("uid")
-	packetid := c.PostForm("envelop_id")
-	if uid == "" || packetid == "" {
-		c.JSON(http.StatusNotFound, gin.H{"code": OPEN_EMPTY_ID, "msg": OPEN_EMPTY_ID_MESSAGE, "data": gin.H{}})
+	var pair_id uid_envelopid
+	if err := c.ShouldBindJSON(&pair_id); err != nil {
+		c.JSON(http.StatusOK, gin.H{"code": OPEN_JSON_PARSE_ERROR, "msg": OPEN_JSON_PARSE_ERROR_MESSAGE, "data": gin.H{}})
 		return
 	}
 
+	uid := fmt.Sprint(pair_id.Uid)
+	packetid := fmt.Sprint(pair_id.Packetid)
 	log.Infof("Envelop %s opened by %s.", packetid, uid)
 
 	// invalid user here
@@ -128,24 +138,25 @@ func OpenHandler(c *gin.Context) {
 }
 
 func WalletListHandler(c *gin.Context) {
-	uidStr := c.PostForm("uid")
-	if uidStr == "" {
-		c.JSON(http.StatusNotFound, gin.H{
-			"code": WALLET_EMPTY_ID,
-			"msg":  WALLET_EMPTY_ID_MESSAGE,
-			"data": gin.H{},
-		})
+	json_str := make(map[string]int32)
+	if err := c.BindJSON(&json_str); err != nil {
+		c.JSON(http.StatusOK, gin.H{"code": WALLET_JSON_PARSE_ERROR, "msg": WALLET_JSON_PARSE_ERROR_MESSAGE, "data": gin.H{}})
 		return
 	}
-	log.Infof("Query %s's wallet", uidStr)
+	if _, ok := json_str["uid"]; !ok {
+		c.JSON(http.StatusOK, gin.H{"code": WALLET_EMPTY_ID, "msg": WALLET_EMPTY_ID_MESSAGE, "data": gin.H{}})
+		return
+	}
+	uid := fmt.Sprint(json_str["uid"])
+	log.Infof("Query %s's wallet", uid)
 
-	packets, _ := db.GetRedPacketsByUID(server.redisdb, uidStr)
+	packets, _ := db.GetRedPacketsByUID(server.redisdb, uid)
 	envelops := []gin.H{}
 	for _, p := range packets {
 		envelops = append(envelops, p.JsonFormat())
 	}
 
-	balance, _ := server.redisdb.HGet(uidStr, "balance").Int64()
+	balance, _ := server.redisdb.HGet(uid, "balance").Int64()
 
 	c.JSON(http.StatusOK, gin.H{
 		"code": WALLET_SUCCESS,
