@@ -20,7 +20,7 @@ func SetRandomSeed() {
 	rand.Seed(time.Now().Unix())
 }
 
-func GetMin(a float32, b float32) float32 {
+func GetMin(a int32, b int32) int32 {
 	if a <= b {
 		return a
 	}

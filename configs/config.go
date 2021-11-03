@@ -58,8 +58,9 @@ func watchConfig() {
 }
 
 type SystemConfig struct {
-	TotalMoney, MinMoney, MaxMoney, P float32
-	TotalNum, MaxAmount               int32
+	TotalMoney                              int64
+	P                                       float32
+	MinMoney, MaxMoney, TotalNum, MaxAmount int32
 }
 
 /*
@@ -68,10 +69,10 @@ return:
 */
 func GenerateConfigFromFile() SystemConfig {
 	config := SystemConfig{
-		float32(GlobalConfig.GetFloat64("common.TotalMoney")),
-		float32(GlobalConfig.GetFloat64("common.MinMoney")),
-		float32(GlobalConfig.GetFloat64("common.MaxMoney")),
+		GlobalConfig.GetInt64("common.TotalMoney"),
 		float32(GlobalConfig.GetFloat64("common.P")),
+		GlobalConfig.GetInt32("common.MinMoney"),
+		GlobalConfig.GetInt32("common.MaxMoney"),
 		GlobalConfig.GetInt32("common.TotalNum"),
 		GlobalConfig.GetInt32("common.MaxAmount")}
 	return config

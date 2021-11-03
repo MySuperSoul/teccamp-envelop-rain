@@ -30,7 +30,7 @@ func SnatchHandler(c *gin.Context) {
 
 	// first to judge whether has packet left
 	remain_num := db.GetSingleValueFromRedis(server.redisdb, "RemainNum", "int32").(int32)
-	remain_money := db.GetSingleValueFromRedis(server.redisdb, "RemainMoney", "float32").(float32)
+	remain_money := db.GetSingleValueFromRedis(server.redisdb, "RemainMoney", "int64").(int64)
 
 	if remain_num == 0 {
 		c.JSON(http.StatusOK, gin.H{"code": SNATCH_NO_RED_PACKET, "msg": SNATCH_NO_RED_PACKET_MESSAGE, "data": gin.H{}})
@@ -61,7 +61,7 @@ func SnatchHandler(c *gin.Context) {
 
 	// update remain value to redis
 	server.redisdb.Decr("RemainNum")
-	server.redisdb.Set("RemainMoney", remain_money-packet.Value, 0)
+	server.redisdb.Set("RemainMoney", remain_money-int64(packet.Value), 0)
 
 	// update user amount and insert the red packet
 	user.Amount++
@@ -120,7 +120,7 @@ func OpenHandler(c *gin.Context) {
 	server.mysql.Save(&user)
 	server.mysql.Save(&packet)
 
-	c.JSON(http.StatusOK, gin.H{"code": OPEN_SUCCESS, "msg": OPEN_SUCCESS_MESSAGE, "data": gin.H{"value": int32(packet.Value * 100)}})
+	c.JSON(http.StatusOK, gin.H{"code": OPEN_SUCCESS, "msg": OPEN_SUCCESS_MESSAGE, "data": gin.H{"value": packet.Value}})
 }
 
 func WalletListHandler(c *gin.Context) {
@@ -149,7 +149,7 @@ func WalletListHandler(c *gin.Context) {
 		"code": WALLET_SUCCESS,
 		"msg":  WALLET_SUCCESS_MESSAGE,
 		"data": gin.H{
-			"amount":       int32(user.Balance * 100),
+			"amount":       user.Balance,
 			"envelop_list": envelops,
 		},
 	})
