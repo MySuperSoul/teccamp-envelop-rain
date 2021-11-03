@@ -116,8 +116,6 @@ func TestMysql(t *testing.T) {
 	if db == nil {
 		t.Failed()
 	}
-	sql, _ := db.DB()
-	defer sql.Close()
 
 	GenerateTables(db)
 	// user表中插入一条记录
@@ -130,4 +128,6 @@ func TestMysql(t *testing.T) {
 		t.Fatal("select from user failed")
 	}
 	db.Delete(&user)
+
+	CloseMySQL(db)
 }

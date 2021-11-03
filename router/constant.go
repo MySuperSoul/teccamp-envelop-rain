@@ -51,8 +51,3 @@ const (
 	WALLET_SUCCESS_MESSAGE  string = "check wallet success"
 	WALLET_EMPTY_ID_MESSAGE string = "input a empty uid"
 )
-
-// system config path
-const (
-	CONFIG_PATH string = "configs/config.json"
-)

@@ -12,6 +12,7 @@ import (
 	"envelop-rain/common"
 	"envelop-rain/controller"
 	db "envelop-rain/repository"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -38,19 +39,20 @@ func SnatchHandler(c *gin.Context) {
 	}
 
 	// Then perform later operations
-	// get user information
-	user := db.User{UserID: uid, Amount: 0, Balance: 0.}
-	server.mysql.Where(db.User{UserID: uid}).FirstOrCreate(&user)
+	// First judge whether has this user
+	if n, _ := server.redisdb.Exists(uidStr).Result(); n == 0 { // no this user
+		server.redisdb.HMSet(uidStr, map[string]interface{}{"amount": 0, "balance": 0})
+		// TODO: send to database to create this user with balance = 0
+	}
 
-	// Then to check the maxamount
-	max_amount := db.GetSingleValueFromRedis(server.redisdb, "MaxAmount", "int32").(int32)
-	if user.Amount == max_amount {
+	// Check whether exceed max amount
+	if amount, _ := server.redisdb.HGet(uidStr, "amount").Int64(); int32(amount) == server.sysconfig.MaxAmount {
 		c.JSON(http.StatusOK, gin.H{"code": SNATCH_EXCEED_MAX_AMOUNT, "msg": SNATCH_EXCEED_MAX_AMOUNT_MESSAGE, "data": gin.H{}})
 		return
 	}
 
 	// Then to judge whether the user is lucky enough
-	if p := db.GetSingleValueFromRedis(server.redisdb, "P", "float32").(float32); common.Rand() > p {
+	if common.Rand() > server.sysconfig.P {
 		c.JSON(http.StatusOK, gin.H{"code": SNATCH_NOT_LUCKY, "msg": SNATCH_NOT_LUCKY_MESSAGE, "data": gin.H{}})
 		return
 	}
@@ -61,66 +63,68 @@ func SnatchHandler(c *gin.Context) {
 
 	// update remain value to redis
 	server.redisdb.Decr("RemainNum")
-	server.redisdb.Set("RemainMoney", remain_money-int64(packet.Value), 0)
+	server.redisdb.DecrBy("RemainMoney", int64(packet.Value))
 
-	// update user amount and insert the red packet
-	user.Amount++
-	server.mysql.Model(&user).Update("amount", user.Amount)
-	server.mysql.Create(&packet)
+	// update user amount
+	server.redisdb.HIncrBy(uidStr, "amount", 1)
+	cur_count, _ := server.redisdb.HGet(uidStr, "amount").Int()
+
+	// insert the redpacket
+	server.redisdb.HMSet(fmt.Sprint(packet.PacketID), packet.ToRedisFormat())
+	server.redisdb.LPush(uidStr+"-wallet", packet.PacketID)
+
+	// TODO: send to database to create the redpacket
 
 	// send message
 	c.JSON(http.StatusOK, gin.H{
 		"code": SNATCH_SUCCESS,
 		"msg":  SNATCH_SUCCESS_MESSAGE,
-		"data": gin.H{"envelop_id": packet.PacketID, "max_count": max_amount, "cur_count": user.Amount},
+		"data": gin.H{"envelop_id": packet.PacketID, "max_count": server.sysconfig.MaxAmount, "cur_count": cur_count},
 	})
 }
 
 func OpenHandler(c *gin.Context) {
-	uidStr := c.PostForm("uid")
-	pocketidStr := c.PostForm("envelop_id")
-	if uidStr == "" || pocketidStr == "" {
+	uid := c.PostForm("uid")
+	packetid := c.PostForm("envelop_id")
+	if uid == "" || packetid == "" {
 		c.JSON(http.StatusNotFound, gin.H{"code": OPEN_EMPTY_ID, "msg": OPEN_EMPTY_ID_MESSAGE, "data": gin.H{}})
 		return
 	}
 
-	userid := common.ConvertString(uidStr, "int32").(int32)
-	packetid := common.ConvertString(pocketidStr, "int64").(int64)
-	log.Infof("Envelop %d opened by %d.", packetid, userid)
+	log.Infof("Envelop %s opened by %s.", packetid, uid)
 
-	var user db.User
-	var packet db.RedPacket
-	result := server.mysql.First(&user, userid)
-	if result.RowsAffected == 0 {
-		log.Errorf("Invalid user id: %d, block him.", userid)
+	// invalid user here
+	if n, _ := server.redisdb.Exists(uid).Result(); n == 0 {
+		log.Errorf("Invalid user id: %s, block him.", uid)
 		c.JSON(http.StatusOK, gin.H{"code": OPEN_INVALID_USER, "msg": OPEN_INVALID_USER_MESSAGE, "data": gin.H{}})
 		return
 	}
-	result = server.mysql.First(&packet, packetid)
-	if result.RowsAffected == 0 {
-		log.Errorf("Invalid envelop id: %d, block it.", packetid)
+
+	if n, _ := server.redisdb.Exists(packetid).Result(); n == 0 {
+		log.Errorf("Invalid envelop id: %s, block it.", packetid)
 		c.JSON(http.StatusOK, gin.H{"code": OPEN_INVALID_PACKET, "msg": OPEN_INVALID_PACKET_MESSAGE, "data": gin.H{}})
 		return
 	}
 
-	if packet.Opened {
-		log.Errorf("Envelop %d has been opened yet.", packetid)
+	if isopen, _ := server.redisdb.HGet(packetid, "opened").Result(); common.ConvertString(isopen, "bool").(bool) {
+		log.Errorf("Envelop %s has been opened yet.", packetid)
 		c.JSON(http.StatusOK, gin.H{"code": OPEN_REPEAT, "msg": OPEN_REPEAT_MESSAGE, "data": gin.H{}})
 		return
 	}
 
-	if userid != packet.UserID {
-		log.Errorf("User %d don't own envelop %d", userid, packetid)
+	if puid, _ := server.redisdb.HGet(packetid, "userid").Result(); puid != uid {
+		log.Errorf("User %s don't own envelop %s", uid, packetid)
 		c.JSON(http.StatusOK, gin.H{"code": OPEN_NOT_MATCH, "msg": OPEN_NOT_MATCH_MESSAGE, "data": gin.H{}})
 		return
 	}
 
-	user.Balance += packet.Value
-	packet.Opened = true
-	server.mysql.Save(&user)
-	server.mysql.Save(&packet)
+	value, _ := server.redisdb.HGet(packetid, "value").Int64()
+	server.redisdb.HIncrBy(uid, "balance", value)
+	server.redisdb.HSet(packetid, "opened", true)
+	// TODO: Update balance to user table
+	// TODO: Update opened field to packet table
 
-	c.JSON(http.StatusOK, gin.H{"code": OPEN_SUCCESS, "msg": OPEN_SUCCESS_MESSAGE, "data": gin.H{"value": packet.Value}})
+	c.JSON(http.StatusOK, gin.H{"code": OPEN_SUCCESS, "msg": OPEN_SUCCESS_MESSAGE, "data": gin.H{"value": int32(value)}})
 }
 
 func WalletListHandler(c *gin.Context) {
@@ -133,23 +137,21 @@ func WalletListHandler(c *gin.Context) {
 		})
 		return
 	}
-	uid := common.ConvertString(uidStr, "int32").(int32)
-	log.Infof("Query %d's wallet", uid)
+	log.Infof("Query %s's wallet", uidStr)
 
-	user := db.User{UserID: uid, Amount: 0, Balance: 0.}
-	server.mysql.Where(db.User{UserID: uid}).FirstOrCreate(&user)
-
-	packets, _ := db.GetRedPacketsByUID(server.mysql, uid)
+	packets, _ := db.GetRedPacketsByUID(server.redisdb, uidStr)
 	envelops := []gin.H{}
 	for _, p := range packets {
 		envelops = append(envelops, p.JsonFormat())
 	}
 
+	balance, _ := server.redisdb.HGet(uidStr, "balance").Int64()
+
 	c.JSON(http.StatusOK, gin.H{
 		"code": WALLET_SUCCESS,
 		"msg":  WALLET_SUCCESS_MESSAGE,
 		"data": gin.H{
-			"amount":       user.Balance,
+			"amount":       int32(balance),
 			"envelop_list": envelops,
 		},
 	})

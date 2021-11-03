@@ -52,6 +52,9 @@ func ConvertString(val string, datatype string) interface{} {
 	case "float64":
 		fval, _ := strconv.ParseFloat(val, 64)
 		return fval
+	case "bool":
+		bval, _ := strconv.ParseBool(val)
+		return bval
 	case "string":
 		return val
 	default:

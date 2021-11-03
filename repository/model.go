@@ -22,6 +22,15 @@ type RedPacket struct {
 	Timestamp int64
 }
 
+func (p *RedPacket) ToRedisFormat() map[string]interface{} {
+	return map[string]interface{}{
+		"userid":    p.UserID,
+		"value":     p.Value,
+		"opened":    p.Opened,
+		"timestamp": p.Timestamp,
+	}
+}
+
 func (p *RedPacket) JsonFormat() map[string]interface{} {
 	if p.Opened {
 		return map[string]interface{}{"envelop_id": p.PacketID, "value": p.Value, "opened": p.Opened, "snatch_time": p.Timestamp}

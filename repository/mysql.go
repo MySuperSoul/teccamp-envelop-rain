@@ -53,15 +53,9 @@ func GetMySQLCursor() *gorm.DB {
 	return db
 }
 
-func GetRedPacketsByUID(mysql *gorm.DB, uid int32) ([]*RedPacket, error) {
-	var packets []*RedPacket
-	conditions := map[string]interface{}{
-		"user_id": uid,
-	}
-	if err := mysql.Where(conditions).Order("timestamp").Find(&packets).Error; err != nil {
-		return nil, err
-	}
-	return packets, nil
+func CloseMySQL(db *gorm.DB) {
+	sql, _ := db.DB()
+	sql.Close()
 }
 
 func GenerateTables(db *gorm.DB) {

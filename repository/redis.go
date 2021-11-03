@@ -45,6 +45,9 @@ func GetRedisClient() *redis.Client {
 		os.Exit(0)
 	}
 	log.Info("Redis connection success")
+
+	// empty the content in redis
+	client.FlushDB()
 	return client
 }
 
@@ -56,4 +59,22 @@ func GetSingleValueFromRedis(redisdb *redis.Client, key string, datatype string)
 	}
 
 	return common.ConvertString(val, datatype)
+}
+
+func GetRedPacketsByUID(redisdb *redis.Client, uid string) ([]*RedPacket, error) {
+	var packets []*RedPacket
+	packet_ids, _ := redisdb.LRange(uid+"-wallet", 0, -1).Result()
+	for i := len(packet_ids) - 1; i >= 0; i-- {
+		packet_id := packet_ids[i]
+		vals, _ := redisdb.HGetAll(packet_id).Result()
+		packets = append(packets, &RedPacket{
+			PacketID:  common.ConvertString(packet_id, "int64").(int64),
+			UserID:    common.ConvertString(vals["userid"], "int32").(int32),
+			Value:     common.ConvertString(vals["value"], "int32").(int32),
+			Opened:    common.ConvertString(vals["opened"], "bool").(bool),
+			Timestamp: common.ConvertString(vals["timestamp"], "int64").(int64),
+		})
+	}
+
+	return packets, nil
 }
