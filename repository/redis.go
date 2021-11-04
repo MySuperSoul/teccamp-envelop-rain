@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-11-01 13:02:08
- * @LastEditTime: 2021-11-02 19:19:06
+ * @LastEditTime: 2021-11-04 16:53:13
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /teccamp-envelop-rain/db/redis.go
@@ -77,4 +77,28 @@ func GetRedPacketsByUID(redisdb *redis.Client, uid string) ([]*RedPacket, error)
 	}
 
 	return packets, nil
+}
+
+func GenerateDecrScript() *redis.Script {
+	return redis.NewScript(`
+	local kc=tonumber(redis.call('GET',KEYS[1]))
+	local kmoney=tonumber(redis.call('GET',KEYS[2])) 
+	
+	if kc==nil or kmoney==nil
+	then 
+		return -1
+	end
+	
+	local newkc=kc - 1
+	local newkmoney=kmoney - ARGV[1]
+	
+	if newkc < 0 or newkmoney < 0
+	then
+		return 0
+	else
+		redis.call('SET',KEYS[1],newkc)
+		redis.call('SET',KEYS[2],newkmoney)
+		return 1
+	end 
+	`)
 }

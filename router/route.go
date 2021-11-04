@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-11-02 19:16:51
- * @LastEditTime: 2021-11-03 21:26:08
+ * @LastEditTime: 2021-11-04 17:04:14
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /teccamp-envelop-rain/router/route.go
@@ -32,16 +32,13 @@ func SnatchHandler(c *gin.Context) {
 	uid := json_str["uid"]
 	uidStr := fmt.Sprintf("%d", uid)
 	log.Infof("snatch by user: %d", uid)
-
 	// first to judge whether has packet left
 	remain_num := db.GetSingleValueFromRedis(server.redisdb, "RemainNum", "int32").(int32)
-	remain_money := db.GetSingleValueFromRedis(server.redisdb, "RemainMoney", "int64").(int64)
 
 	if remain_num == 0 {
 		c.JSON(http.StatusOK, gin.H{"code": SNATCH_NO_RED_PACKET, "msg": SNATCH_NO_RED_PACKET_MESSAGE, "data": gin.H{}})
 		return
 	}
-
 	// Then perform later operations
 	// First judge whether has this user
 	if n, _ := server.redisdb.Exists(uidStr).Result(); n == 0 { // no this user
@@ -61,13 +58,27 @@ func SnatchHandler(c *gin.Context) {
 		return
 	}
 
+	remain_money := db.GetSingleValueFromRedis(server.redisdb, "RemainMoney", "int64").(int64)
 	// First generate the red packet
 	packet := controller.GetRedPacket(remain_num, remain_money, server.sysconfig.MinMoney, server.sysconfig.MaxMoney)
 	packet.UserID = uid
 
 	// update remain value to redis
-	server.redisdb.Decr("RemainNum")
-	server.redisdb.DecrBy("RemainMoney", int64(packet.Value))
+	decrScript := db.GenerateDecrScript()
+	ret, err := decrScript.Run(server.redisdb, []string{"RemainNum", "RemainMoney"}, packet.Value).Result()
+	if err != nil || ret.(int64) == -1 {
+		log.Debug(err)
+		c.JSON(http.StatusOK, gin.H{"code": SNATCH_NOT_LUCKY, "msg": SNATCH_NOT_LUCKY_MESSAGE, "data": gin.H{}})
+		return
+	}
+
+	if ret.(int64) == 0 {
+		c.JSON(http.StatusOK, gin.H{"code": SNATCH_NO_RED_PACKET, "msg": SNATCH_NO_RED_PACKET_MESSAGE, "data": gin.H{}})
+		return
+	}
+
+	//server.redisdb.Decr("RemainNum")
+	//server.redisdb.DecrBy("RemainMoney", int64(packet.Value))
 
 	// update user amount
 	server.redisdb.HIncrBy(uidStr, "amount", 1)
