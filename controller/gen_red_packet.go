@@ -21,7 +21,7 @@ func GetRedPacket(remain_num int32, remain_money int64, min_money int32, max_mon
 			Value:     common.GetMin(int32(remain_money), max_money),
 			Opened:    false,
 			Timestamp: time.Now().UnixNano(),
-			PacketID:  time.Now().UnixMicro(),
+			PacketID:  time.Now().UnixNano() / 1000,
 		}
 	}
 	mean_money := int32(remain_money / int64(remain_num))
@@ -31,6 +31,6 @@ func GetRedPacket(remain_num int32, remain_money int64, min_money int32, max_mon
 		Value:     money,
 		Opened:    false,
 		Timestamp: time.Now().UnixNano(),
-		PacketID:  time.Now().UnixMicro(),
+		PacketID:  time.Now().UnixNano() / 1000,
 	}
 }
