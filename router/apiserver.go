@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-11-02 19:16:45
- * @LastEditTime: 2021-11-02 21:12:29
+ * @LastEditTime: 2021-11-06 22:44:15
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /teccamp-envelop-rain/Router/apiserver.go
@@ -11,8 +11,10 @@ package router
 import (
 	"envelop-rain/common"
 	"envelop-rain/configs"
+	"envelop-rain/middleware"
 	db "envelop-rain/repository"
 	"fmt"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis"
@@ -44,9 +46,12 @@ func init() {
 
 func APIServerRun() {
 	r := gin.Default()
-	r.POST("/snatch", SnatchHandler)
-	r.POST("/open", OpenHandler)
-	r.POST("/get_wallet_list", WalletListHandler)
+	lmForSnatch := middleware.NewRateLimiter(time.Second, configs.GlobalConfig.GetInt64("limiter.SnatchPerSecond"))
+	lmForOpen := middleware.NewRateLimiter(time.Minute, configs.GlobalConfig.GetInt64("limiter.OpenPerMinute"))
+	lmForWallet := middleware.NewRateLimiter(time.Minute, configs.GlobalConfig.GetInt64("limiter.WalletPerMinute"))
+	r.POST("/snatch", lmForSnatch.Middleware(), SnatchHandler)
+	r.POST("/open", lmForOpen.Middleware(), OpenHandler)
+	r.POST("/get_wallet_list", lmForWallet.Middleware(), WalletListHandler)
 	r.Run()
 }
 

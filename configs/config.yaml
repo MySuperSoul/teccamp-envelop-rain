@@ -16,3 +16,8 @@ Redis:
     RedisAddr: 127.0.0.1:6379
     RedisPassword: 
     RedisPoolSize: 100
+
+Limiter:
+    SnatchPerSecond: 1000
+    OpenPerMinute: 1000
+    WalletPerMinute: 1000
