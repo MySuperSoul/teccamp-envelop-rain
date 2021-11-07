@@ -32,7 +32,6 @@ func SnatchHandler(c *gin.Context) {
 	}
 	uid := json_str["uid"]
 	uidStr := fmt.Sprintf("%d", uid)
-	log.Infof("snatch by user: %d", uid)
 	// first to judge whether has packet left
 	remain_num := db.GetSingleValueFromRedis(server.redisdb, "RemainNum", "int32").(int32)
 
@@ -48,7 +47,8 @@ func SnatchHandler(c *gin.Context) {
 	}
 
 	// Check whether exceed max amount
-	if amount, _ := server.redisdb.HGet(uidStr, "amount").Int64(); int32(amount) == server.sysconfig.MaxAmount {
+	amount, _ := server.redisdb.HGet(uidStr, "amount").Int64()
+	if int32(amount) == server.sysconfig.MaxAmount {
 		c.JSON(http.StatusOK, gin.H{"code": SNATCH_EXCEED_MAX_AMOUNT, "msg": SNATCH_EXCEED_MAX_AMOUNT_MESSAGE, "data": gin.H{}})
 		return
 	}
@@ -78,25 +78,21 @@ func SnatchHandler(c *gin.Context) {
 		return
 	}
 
-	//server.redisdb.Decr("RemainNum")
-	//server.redisdb.DecrBy("RemainMoney", int64(packet.Value))
+	// send message
+	c.JSON(http.StatusOK, gin.H{
+		"code": SNATCH_SUCCESS,
+		"msg":  SNATCH_SUCCESS_MESSAGE,
+		"data": gin.H{"envelop_id": packet.PacketID, "max_count": server.sysconfig.MaxAmount, "cur_count": int32(amount) + 1},
+	})
 
 	// update user amount
 	server.redisdb.HIncrBy(uidStr, "amount", 1)
-	cur_count, _ := server.redisdb.HGet(uidStr, "amount").Int()
-
 	// insert the redpacket
 	server.redisdb.HMSet(fmt.Sprint(packet.PacketID), packet.ToRedisFormat())
 	server.redisdb.LPush(uidStr+"-wallet", packet.PacketID)
 
 	// TODO: send to database to create the redpacket
 
-	// send message
-	c.JSON(http.StatusOK, gin.H{
-		"code": SNATCH_SUCCESS,
-		"msg":  SNATCH_SUCCESS_MESSAGE,
-		"data": gin.H{"envelop_id": packet.PacketID, "max_count": server.sysconfig.MaxAmount, "cur_count": cur_count},
-	})
 }
 
 type uid_envelopid struct {
