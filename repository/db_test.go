@@ -11,6 +11,7 @@ package repository
 import (
 	"envelop-rain/configs"
 	"testing"
+	"time"
 )
 
 func TestGetSingleValueFromRedis(t *testing.T) {
@@ -130,4 +131,22 @@ func TestMysql(t *testing.T) {
 	db.Delete(&user)
 
 	CloseMySQL(db)
+}
+
+func TestGeneratePacketScript(t *testing.T) {
+	redisdb := GetRedisClient()
+	defer redisdb.Close()
+
+	c := configs.SystemConfig{TotalMoney: 10000, MinMoney: 1, MaxMoney: 100, P: 0.2, TotalNum: 100, MaxAmount: 5}
+	configs.SetConfigToRedis(&c, redisdb)
+
+	for i := 0; i < int(c.TotalNum); i++ {
+		value, err := GeneratePacketScript().Run(redisdb, []string{"RemainNum", "RemainMoney"}, c.MaxMoney, c.MinMoney, time.Now().Nanosecond()).Result()
+		if err != nil {
+			t.Fatal(err.Error())
+		}
+		if value.(int64) < int64(c.MinMoney) || value.(int64) > int64(c.MaxMoney) {
+			t.Fatalf("Failed to generate packet, value is %d", value.(int64))
+		}
+	}
 }

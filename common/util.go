@@ -61,3 +61,13 @@ func ConvertString(val string, datatype string) interface{} {
 		return val
 	}
 }
+
+func GetRedPacket(remain_num int32, remain_money int64, min_money int32, max_money int32) int32 {
+	if remain_num == 1 {
+		return GetMin(int32(remain_money), max_money)
+	}
+	mean_money := int32(remain_money / int64(remain_num))
+	max_money = GetMin(max_money, 2*mean_money-min_money)
+	money := min_money + rand.Int31n(max_money-min_money+1)
+	return money
+}

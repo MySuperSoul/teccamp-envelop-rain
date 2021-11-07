@@ -86,6 +86,7 @@ func SetConfigToRedis(config *SystemConfig, redisdb *redis.Client) {
 		"TotalNum", config.TotalNum,
 		"RemainMoney", config.TotalMoney,
 		"RemainNum", config.TotalNum,
+		"CurrentNum", 0,
 		"MinMoney", config.MinMoney,
 		"MaxMoney", config.MaxMoney,
 		"MaxAmount", config.MaxAmount,
