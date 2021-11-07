@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-11-02 19:16:51
- * @LastEditTime: 2021-11-04 17:04:14
+ * @LastEditTime: 2021-11-07 12:18:16
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /teccamp-envelop-rain/router/route.go
@@ -64,25 +64,15 @@ func SnatchHandler(c *gin.Context) {
 	packet.UserID = uid
 
 	// update remain value to redis
-	decrScript := db.GenerateDecrScript()
-	ret, err := decrScript.Run(server.redisdb, []string{"RemainNum", "RemainMoney"}, packet.Value).Result()
-	if err != nil || ret.(int64) == -1 {
-		log.Debug(err)
-		c.JSON(http.StatusOK, gin.H{"code": SNATCH_NOT_LUCKY, "msg": SNATCH_NOT_LUCKY_MESSAGE, "data": gin.H{}})
+	if ret := UpdateRemain(c, packet.Value); ret < 1 {
 		return
 	}
-
-	if ret.(int64) == 0 {
-		c.JSON(http.StatusOK, gin.H{"code": SNATCH_NO_RED_PACKET, "msg": SNATCH_NO_RED_PACKET_MESSAGE, "data": gin.H{}})
-		return
-	}
-
-	//server.redisdb.Decr("RemainNum")
-	//server.redisdb.DecrBy("RemainMoney", int64(packet.Value))
 
 	// update user amount
-	server.redisdb.HIncrBy(uidStr, "amount", 1)
-	cur_count, _ := server.redisdb.HGet(uidStr, "amount").Int()
+	cur_count := UpdateUserAmount(c, uidStr)
+	if cur_count < 1 {
+		return
+	}
 
 	// insert the redpacket
 	server.redisdb.HMSet(fmt.Sprint(packet.PacketID), packet.ToRedisFormat())

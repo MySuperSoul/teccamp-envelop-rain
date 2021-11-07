@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-11-01 13:02:08
- * @LastEditTime: 2021-11-04 16:53:13
+ * @LastEditTime: 2021-11-07 12:06:39
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /teccamp-envelop-rain/db/redis.go
@@ -99,6 +99,27 @@ func GenerateDecrScript() *redis.Script {
 		redis.call('SET',KEYS[1],newkc)
 		redis.call('SET',KEYS[2],newkmoney)
 		return 1
+	end 
+	`)
+}
+
+func GenerateUserAmountDecrScript() *redis.Script {
+	return redis.NewScript(`
+	local kUserAmount=tonumber(redis.call('HGET',KEYS[1],KEYS[2]))
+
+	if kUserAmount==nil
+	then 
+		return -1
+	end
+
+	local newkUserAmount=kUserAmount+1
+
+	if newkUserAmount > tonumber(ARGV[1])
+	then
+		return 0
+	else
+		redis.call('HSET',KEYS[1],KEYS[2],newkUserAmount)
+		return newkUserAmount
 	end 
 	`)
 }
