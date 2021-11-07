@@ -11,6 +11,7 @@ package router
 import (
 	"envelop-rain/common"
 	"envelop-rain/configs"
+	"envelop-rain/constant"
 	"envelop-rain/middleware"
 	db "envelop-rain/repository"
 	"fmt"
@@ -46,9 +47,9 @@ func init() {
 
 func APIServerRun() {
 	r := gin.Default()
-	lmForSnatch := middleware.NewRateLimiter(time.Second, configs.GlobalConfig.GetInt64("limiter.SnatchPerSecond"))
-	lmForOpen := middleware.NewRateLimiter(time.Minute, configs.GlobalConfig.GetInt64("limiter.OpenPerMinute"))
-	lmForWallet := middleware.NewRateLimiter(time.Minute, configs.GlobalConfig.GetInt64("limiter.WalletPerMinute"))
+	lmForSnatch := middleware.NewRateLimiter(time.Second, configs.GlobalConfig.GetInt64("limiter.SnatchPerSecond"), constant.REQUEST_SNATCH)
+	lmForOpen := middleware.NewRateLimiter(time.Minute, configs.GlobalConfig.GetInt64("limiter.OpenPerMinute"), constant.REQUEST_OPEN)
+	lmForWallet := middleware.NewRateLimiter(time.Minute, configs.GlobalConfig.GetInt64("limiter.WalletPerMinute"), constant.REQUEST_GETWL)
 	r.POST("/snatch", lmForSnatch.Middleware(), SnatchHandler)
 	r.POST("/open", lmForOpen.Middleware(), OpenHandler)
 	r.POST("/get_wallet_list", lmForWallet.Middleware(), WalletListHandler)

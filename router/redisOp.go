@@ -9,6 +9,7 @@
 package router
 
 import (
+	"envelop-rain/constant"
 	db "envelop-rain/repository"
 	"net/http"
 
@@ -27,11 +28,11 @@ func UpdateRemain(c *gin.Context, value int32) int {
 	ret, err := decrScript.Run(server.redisdb, []string{"RemainNum", "RemainMoney"}, value).Result()
 	if err != nil || ret.(int64) == -1 {
 		log.Debug(err)
-		c.JSON(http.StatusOK, gin.H{"code": SNATCH_NOT_LUCKY, "msg": SNATCH_NOT_LUCKY_MESSAGE, "data": gin.H{}})
+		c.JSON(http.StatusOK, gin.H{"code": constant.SNATCH_NOT_LUCKY, "msg": constant.SNATCH_NOT_LUCKY_MESSAGE, "data": gin.H{}})
 		return -1
 	}
 	if ret.(int64) == 0 {
-		c.JSON(http.StatusOK, gin.H{"code": SNATCH_NO_RED_PACKET, "msg": SNATCH_NO_RED_PACKET_MESSAGE, "data": gin.H{}})
+		c.JSON(http.StatusOK, gin.H{"code": constant.SNATCH_NO_RED_PACKET, "msg": constant.SNATCH_NO_RED_PACKET_MESSAGE, "data": gin.H{}})
 		return 0
 	}
 	return 1
@@ -48,11 +49,11 @@ func UpdateUserAmount(c *gin.Context, uidStr string) int {
 	ret, err := amountDecrScript.Run(server.redisdb, []string{uidStr, "amount"}, server.sysconfig.MaxAmount).Result()
 	if err != nil || ret.(int64) == -1 {
 		log.Debug(err)
-		c.JSON(http.StatusOK, gin.H{"code": SNATCH_NOT_LUCKY, "msg": SNATCH_NOT_LUCKY_MESSAGE, "data": gin.H{}})
+		c.JSON(http.StatusOK, gin.H{"code": constant.SNATCH_NOT_LUCKY, "msg": constant.SNATCH_NOT_LUCKY_MESSAGE, "data": gin.H{}})
 		return -1
 	}
 	if ret.(int64) == 0 {
-		c.JSON(http.StatusOK, gin.H{"code": SNATCH_EXCEED_MAX_AMOUNT, "msg": SNATCH_EXCEED_MAX_AMOUNT_MESSAGE, "data": gin.H{}})
+		c.JSON(http.StatusOK, gin.H{"code": constant.SNATCH_EXCEED_MAX_AMOUNT, "msg": constant.SNATCH_EXCEED_MAX_AMOUNT_MESSAGE, "data": gin.H{}})
 		return 0
 	}
 	return int(ret.(int64))
