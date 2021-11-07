@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-11-01 13:02:08
- * @LastEditTime: 2021-11-07 12:06:39
+ * @LastEditTime: 2021-11-07 15:19:52
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /teccamp-envelop-rain/db/redis.go
@@ -121,5 +121,32 @@ func GenerateUserAmountDecrScript() *redis.Script {
 		redis.call('HSET',KEYS[1],KEYS[2],newkUserAmount)
 		return newkUserAmount
 	end 
+	`)
+}
+
+func GenerateOpenPacketScript() *redis.Script {
+	return redis.NewScript(`
+	local function toboolean(str)
+    	local bool = false
+    	if str == "true" then
+        	bool = true
+    	end
+    	return bool
+	end
+	local kOpened=toboolean(redis.call('HGET',KEYS[1],KEYS[2]))
+	if kOpened==nil
+	then 
+		return -1
+	end
+
+	if kOpened==true
+	then
+		return 0
+	else
+		local kValue=tonumber(redis.call('HGET',KEYS[1],KEYS[3]))
+		redis.call('HINCRBY',KEYS[4],KEYS[5],kValue)
+		redis.call('HSET',KEYS[1],KEYS[2],'true')
+		return kValue
+	end
 	`)
 }

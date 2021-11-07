@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-11-02 19:16:51
- * @LastEditTime: 2021-11-07 12:18:16
+ * @LastEditTime: 2021-11-07 15:05:17
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /teccamp-envelop-rain/router/route.go
@@ -117,25 +117,19 @@ func OpenHandler(c *gin.Context) {
 		return
 	}
 
-	if isopen, _ := server.redisdb.HGet(packetid, "opened").Result(); common.ConvertString(isopen, "bool").(bool) {
-		log.Errorf("Envelop %s has been opened yet.", packetid)
-		c.JSON(http.StatusOK, gin.H{"code": OPEN_REPEAT, "msg": OPEN_REPEAT_MESSAGE, "data": gin.H{}})
-		return
-	}
-
 	if puid, _ := server.redisdb.HGet(packetid, "userid").Result(); puid != uid {
 		log.Errorf("User %s don't own envelop %s", uid, packetid)
 		c.JSON(http.StatusOK, gin.H{"code": OPEN_NOT_MATCH, "msg": OPEN_NOT_MATCH_MESSAGE, "data": gin.H{}})
 		return
 	}
 
-	value, _ := server.redisdb.HGet(packetid, "value").Int64()
-	server.redisdb.HIncrBy(uid, "balance", value)
-	server.redisdb.HSet(packetid, "opened", true)
-	// TODO: Update balance to user table
-	// TODO: Update opened field to packet table
+	//try open the red packet
+	ret := OpenPacket(c, uid, packetid)
+	if ret < 1 {
+		return
+	}
 
-	c.JSON(http.StatusOK, gin.H{"code": OPEN_SUCCESS, "msg": OPEN_SUCCESS_MESSAGE, "data": gin.H{"value": int32(value)}})
+	c.JSON(http.StatusOK, gin.H{"code": OPEN_SUCCESS, "msg": OPEN_SUCCESS_MESSAGE, "data": gin.H{"value": int32(ret)}})
 }
 
 func WalletListHandler(c *gin.Context) {
