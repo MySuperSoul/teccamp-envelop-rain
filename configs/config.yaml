@@ -1,6 +1,6 @@
 common:
-    TotalMoney: 10000000
-    TotalNum: 10000
+    TotalMoney: 100000000
+    TotalNum: 100000
     MinMoney: 1
     MaxMoney: 2000
     MaxAmount: 5

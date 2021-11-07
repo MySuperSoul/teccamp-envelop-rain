@@ -44,4 +44,5 @@ func FlushDBHandler(c *gin.Context) {
 	server.redisdb.FlushDB()
 	configs.SetConfigToRedis(&server.sysconfig, server.redisdb)
 	db.GenerateTables(server.mysql)
+	server.sendall = false
 }
