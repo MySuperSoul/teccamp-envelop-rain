@@ -16,6 +16,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis"
+	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
@@ -28,6 +29,7 @@ type APIServer struct {
 var server APIServer
 
 func init() {
+	log.SetLevel(log.ErrorLevel)
 	// set random seed
 	common.SetRandomSeed()
 	// get system config
@@ -43,10 +45,12 @@ func init() {
 }
 
 func APIServerRun() {
+	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
 	r.POST("/snatch", SnatchHandler)
 	r.POST("/open", OpenHandler)
 	r.POST("/get_wallet_list", WalletListHandler)
+	r.GET("/flush", FlushDBHandler)
 	r.Run()
 }
 

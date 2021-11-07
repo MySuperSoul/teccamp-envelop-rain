@@ -10,6 +10,7 @@ package router
 
 import (
 	"envelop-rain/common"
+	"envelop-rain/configs"
 	"envelop-rain/controller"
 	db "envelop-rain/repository"
 	"fmt"
@@ -177,4 +178,11 @@ func WalletListHandler(c *gin.Context) {
 			"envelop_list": envelops,
 		},
 	})
+}
+
+// Only for testing in cloud
+func FlushDBHandler(c *gin.Context) {
+	server.redisdb.FlushDB()
+	configs.SetConfigToRedis(&server.sysconfig, server.redisdb)
+	db.GenerateTables(server.mysql)
 }
