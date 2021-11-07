@@ -23,6 +23,7 @@ type APIServer struct {
 	sysconfig configs.SystemConfig
 	redisdb   *redis.Client
 	mysql     *gorm.DB
+	sendall   bool
 }
 
 var server APIServer
@@ -36,6 +37,8 @@ func init() {
 	server.redisdb = db.GetRedisClient()
 	// get mysql connection
 	server.mysql = db.GetMySQLCursor()
+	server.sendall = false
+
 	// generate tables
 	db.GenerateTables(server.mysql)
 	// set config to redis

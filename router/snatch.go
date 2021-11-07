@@ -23,12 +23,18 @@ func SnatchHandler(c *gin.Context) {
 	uid := json_str["uid"]
 	uidStr := fmt.Sprintf("%d", uid)
 	// first to judge whether has packet left
-	current_num := db.GetSingleValueFromRedis(server.redisdb, "CurrentNum", "int32").(int32)
-
-	if current_num == server.sysconfig.TotalNum {
+	if server.sendall {
 		c.JSON(http.StatusOK, gin.H{"code": SNATCH_NO_RED_PACKET, "msg": SNATCH_NO_RED_PACKET_MESSAGE, "data": gin.H{}})
 		return
 	}
+
+	current_num := db.GetSingleValueFromRedis(server.redisdb, "CurrentNum", "int32").(int32)
+	if current_num >= server.sysconfig.TotalNum {
+		c.JSON(http.StatusOK, gin.H{"code": SNATCH_NO_RED_PACKET, "msg": SNATCH_NO_RED_PACKET_MESSAGE, "data": gin.H{}})
+		server.sendall = true
+		return
+	}
+
 	// Then perform later operations
 	// First judge whether has this user
 	if n, _ := server.redisdb.Exists(uidStr).Result(); n == 0 { // no this user
