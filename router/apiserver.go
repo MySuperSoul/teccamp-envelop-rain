@@ -43,6 +43,7 @@ func init() {
 }
 
 func APIServerRun() {
+	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
 	r.POST("/snatch", SnatchHandler)
 	r.POST("/open", OpenHandler)

@@ -15,4 +15,4 @@ Database:
 Redis:
     RedisAddr: redis-cn02ubqn3px4a2y7z.redis.volces.com:6379
     RedisPassword: rain@Group7
-    RedisPoolSize: 100
+    RedisPoolSize: 200
