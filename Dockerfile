@@ -7,6 +7,7 @@
 # WORKDIR /root
 # RUN go build -o /root/app
 
+# webhook test
 FROM cr-cn-beijing.volces.com/group7/centos:7
 # COPY --from=builder /root/app /root/server
 # COPY --from=builder /root/configs/ /root/configs/
