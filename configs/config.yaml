@@ -4,7 +4,7 @@ common:
     MinMoney: 1.0
     MaxMoney: 200.0
     MaxAmount: 5
-    P: 0.7
+    P: 0.2
 
 Database:
     UserName: group7
