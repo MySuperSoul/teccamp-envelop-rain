@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-11-01 13:02:08
- * @LastEditTime: 2021-11-07 15:19:52
+ * @LastEditTime: 2021-11-07 17:15:14
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /teccamp-envelop-rain/db/redis.go
@@ -147,6 +147,30 @@ func GenerateOpenPacketScript() *redis.Script {
 		redis.call('HINCRBY',KEYS[4],KEYS[5],kValue)
 		redis.call('HSET',KEYS[1],KEYS[2],'true')
 		return kValue
+	end
+	`)
+}
+
+func GenerateChangeScript() *redis.Script {
+	return redis.NewScript(`
+	local kc=tonumber(redis.call('GET',KEYS[1]))
+	local kmoney=tonumber(redis.call('GET',KEYS[2])) 
+
+	if kc==nil or kmoney==nil
+	then 
+		return -1
+	end
+
+	local newkc=kc-ARGV[1]
+	local newkmoney=kmoney - ARGV[2]
+
+	if newkc < 0 or newkmoney < 0
+	then
+		return 0
+	else
+		redis.call('SET',KEYS[1],newkc)
+		redis.call('SET',KEYS[2],newkmoney)
+		return 1
 	end
 	`)
 }

@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-11-02 19:16:45
- * @LastEditTime: 2021-11-06 22:44:15
+ * @LastEditTime: 2021-11-07 17:33:02
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /teccamp-envelop-rain/Router/apiserver.go
@@ -53,6 +53,7 @@ func APIServerRun() {
 	r.POST("/snatch", lmForSnatch.Middleware(), SnatchHandler)
 	r.POST("/open", lmForOpen.Middleware(), OpenHandler)
 	r.POST("/get_wallet_list", lmForWallet.Middleware(), WalletListHandler)
+	r.POST("/change_configs", ChangeConfigsHandler)
 	r.Run()
 }
 

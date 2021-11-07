@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-11-01 13:02:08
- * @LastEditTime: 2021-11-03 20:39:53
+ * @LastEditTime: 2021-11-07 19:22:17
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /teccamp-envelop-rain/common/constant.go
@@ -62,6 +62,18 @@ const (
 	WALLET_EMPTY_ID_MESSAGE         string = "input a empty uid"
 	WALLET_JSON_PARSE_ERROR_MESSAGE string = "json parsing error"
 	WALLET_BUSY_MESSAGE             string = "server busy, try again"
+)
+
+const (
+	CHANGE_SUCCESS          int = 0
+	CHANGE_JSON_PARSE_ERROR int = 1
+	CHANGE_INVALID          int = 2
+)
+
+const (
+	CHANGE_SUCCESS_MESSAGE          string = "change system settings success"
+	CHANGE_JSON_PARSE_ERROR_MESSAGE string = "json parsing error"
+	CHANGE_INVALID_MESSAGE          string = "invalid settings for system"
 )
 
 const (
