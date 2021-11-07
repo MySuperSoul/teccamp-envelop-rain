@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-11-02 19:16:51
- * @LastEditTime: 2021-11-07 15:05:17
+ * @LastEditTime: 2021-11-07 15:28:48
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /teccamp-envelop-rain/router/route.go
@@ -10,6 +10,7 @@ package router
 
 import (
 	"envelop-rain/common"
+	"envelop-rain/constant"
 	"envelop-rain/controller"
 	db "envelop-rain/repository"
 	"fmt"
@@ -22,11 +23,11 @@ import (
 func SnatchHandler(c *gin.Context) {
 	json_str := make(map[string]int32)
 	if err := c.BindJSON(&json_str); err != nil {
-		c.JSON(http.StatusOK, gin.H{"code": SNATCH_JSON_PARSE_ERROR, "msg": SNATCH_JSON_PARSE_ERROR_MESSAGE, "data": gin.H{}})
+		c.JSON(http.StatusOK, gin.H{"code": constant.SNATCH_JSON_PARSE_ERROR, "msg": constant.SNATCH_JSON_PARSE_ERROR_MESSAGE, "data": gin.H{}})
 		return
 	}
 	if _, ok := json_str["uid"]; !ok {
-		c.JSON(http.StatusOK, gin.H{"code": SNATCH_EMPTY_UID, "msg": SNATCH_EMPTY_UID_MESSAGE, "data": gin.H{}})
+		c.JSON(http.StatusOK, gin.H{"code": constant.SNATCH_EMPTY_UID, "msg": constant.SNATCH_EMPTY_UID_MESSAGE, "data": gin.H{}})
 		return
 	}
 	uid := json_str["uid"]
@@ -36,7 +37,7 @@ func SnatchHandler(c *gin.Context) {
 	remain_num := db.GetSingleValueFromRedis(server.redisdb, "RemainNum", "int32").(int32)
 
 	if remain_num == 0 {
-		c.JSON(http.StatusOK, gin.H{"code": SNATCH_NO_RED_PACKET, "msg": SNATCH_NO_RED_PACKET_MESSAGE, "data": gin.H{}})
+		c.JSON(http.StatusOK, gin.H{"code": constant.SNATCH_NO_RED_PACKET, "msg": constant.SNATCH_NO_RED_PACKET_MESSAGE, "data": gin.H{}})
 		return
 	}
 	// Then perform later operations
@@ -48,13 +49,13 @@ func SnatchHandler(c *gin.Context) {
 
 	// Check whether exceed max amount
 	if amount, _ := server.redisdb.HGet(uidStr, "amount").Int64(); int32(amount) == server.sysconfig.MaxAmount {
-		c.JSON(http.StatusOK, gin.H{"code": SNATCH_EXCEED_MAX_AMOUNT, "msg": SNATCH_EXCEED_MAX_AMOUNT_MESSAGE, "data": gin.H{}})
+		c.JSON(http.StatusOK, gin.H{"code": constant.SNATCH_EXCEED_MAX_AMOUNT, "msg": constant.SNATCH_EXCEED_MAX_AMOUNT_MESSAGE, "data": gin.H{}})
 		return
 	}
 
 	// Then to judge whether the user is lucky enough
 	if common.Rand() > server.sysconfig.P {
-		c.JSON(http.StatusOK, gin.H{"code": SNATCH_NOT_LUCKY, "msg": SNATCH_NOT_LUCKY_MESSAGE, "data": gin.H{}})
+		c.JSON(http.StatusOK, gin.H{"code": constant.SNATCH_NOT_LUCKY, "msg": constant.SNATCH_NOT_LUCKY_MESSAGE, "data": gin.H{}})
 		return
 	}
 
@@ -82,8 +83,8 @@ func SnatchHandler(c *gin.Context) {
 
 	// send message
 	c.JSON(http.StatusOK, gin.H{
-		"code": SNATCH_SUCCESS,
-		"msg":  SNATCH_SUCCESS_MESSAGE,
+		"code": constant.SNATCH_SUCCESS,
+		"msg":  constant.SNATCH_SUCCESS_MESSAGE,
 		"data": gin.H{"envelop_id": packet.PacketID, "max_count": server.sysconfig.MaxAmount, "cur_count": cur_count},
 	})
 }
@@ -96,7 +97,7 @@ type uid_envelopid struct {
 func OpenHandler(c *gin.Context) {
 	var pair_id uid_envelopid
 	if err := c.ShouldBindJSON(&pair_id); err != nil {
-		c.JSON(http.StatusOK, gin.H{"code": OPEN_JSON_PARSE_ERROR, "msg": OPEN_JSON_PARSE_ERROR_MESSAGE, "data": gin.H{}})
+		c.JSON(http.StatusOK, gin.H{"code": constant.OPEN_JSON_PARSE_ERROR, "msg": constant.OPEN_JSON_PARSE_ERROR_MESSAGE, "data": gin.H{}})
 		return
 	}
 
@@ -107,19 +108,19 @@ func OpenHandler(c *gin.Context) {
 	// invalid user here
 	if n, _ := server.redisdb.Exists(uid).Result(); n == 0 {
 		log.Errorf("Invalid user id: %s, block him.", uid)
-		c.JSON(http.StatusOK, gin.H{"code": OPEN_INVALID_USER, "msg": OPEN_INVALID_USER_MESSAGE, "data": gin.H{}})
+		c.JSON(http.StatusOK, gin.H{"code": constant.OPEN_INVALID_USER, "msg": constant.OPEN_INVALID_USER_MESSAGE, "data": gin.H{}})
 		return
 	}
 
 	if n, _ := server.redisdb.Exists(packetid).Result(); n == 0 {
 		log.Errorf("Invalid envelop id: %s, block it.", packetid)
-		c.JSON(http.StatusOK, gin.H{"code": OPEN_INVALID_PACKET, "msg": OPEN_INVALID_PACKET_MESSAGE, "data": gin.H{}})
+		c.JSON(http.StatusOK, gin.H{"code": constant.OPEN_INVALID_PACKET, "msg": constant.OPEN_INVALID_PACKET_MESSAGE, "data": gin.H{}})
 		return
 	}
 
 	if puid, _ := server.redisdb.HGet(packetid, "userid").Result(); puid != uid {
 		log.Errorf("User %s don't own envelop %s", uid, packetid)
-		c.JSON(http.StatusOK, gin.H{"code": OPEN_NOT_MATCH, "msg": OPEN_NOT_MATCH_MESSAGE, "data": gin.H{}})
+		c.JSON(http.StatusOK, gin.H{"code": constant.OPEN_NOT_MATCH, "msg": constant.OPEN_NOT_MATCH_MESSAGE, "data": gin.H{}})
 		return
 	}
 
@@ -129,17 +130,17 @@ func OpenHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"code": OPEN_SUCCESS, "msg": OPEN_SUCCESS_MESSAGE, "data": gin.H{"value": int32(ret)}})
+	c.JSON(http.StatusOK, gin.H{"code": constant.OPEN_SUCCESS, "msg": constant.OPEN_SUCCESS_MESSAGE, "data": gin.H{"value": int32(ret)}})
 }
 
 func WalletListHandler(c *gin.Context) {
 	json_str := make(map[string]int32)
 	if err := c.BindJSON(&json_str); err != nil {
-		c.JSON(http.StatusOK, gin.H{"code": WALLET_JSON_PARSE_ERROR, "msg": WALLET_JSON_PARSE_ERROR_MESSAGE, "data": gin.H{}})
+		c.JSON(http.StatusOK, gin.H{"code": constant.WALLET_JSON_PARSE_ERROR, "msg": constant.WALLET_JSON_PARSE_ERROR_MESSAGE, "data": gin.H{}})
 		return
 	}
 	if _, ok := json_str["uid"]; !ok {
-		c.JSON(http.StatusOK, gin.H{"code": WALLET_EMPTY_ID, "msg": WALLET_EMPTY_ID_MESSAGE, "data": gin.H{}})
+		c.JSON(http.StatusOK, gin.H{"code": constant.WALLET_EMPTY_ID, "msg": constant.WALLET_EMPTY_ID_MESSAGE, "data": gin.H{}})
 		return
 	}
 	uid := fmt.Sprint(json_str["uid"])
@@ -154,8 +155,8 @@ func WalletListHandler(c *gin.Context) {
 	balance, _ := server.redisdb.HGet(uid, "balance").Int64()
 
 	c.JSON(http.StatusOK, gin.H{
-		"code": WALLET_SUCCESS,
-		"msg":  WALLET_SUCCESS_MESSAGE,
+		"code": constant.WALLET_SUCCESS,
+		"msg":  constant.WALLET_SUCCESS_MESSAGE,
 		"data": gin.H{
 			"amount":       int32(balance),
 			"envelop_list": envelops,
