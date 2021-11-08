@@ -1,3 +1,11 @@
+/*
+ * @Author: your name
+ * @Date: 2021-11-08 16:49:31
+ * @LastEditTime: 2021-11-08 17:04:50
+ * @LastEditors: Please set LastEditors
+ * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ * @FilePath: /teccamp-envelop-rain/router/snatch.go
+ */
 package router
 
 import (
@@ -31,6 +39,12 @@ func SnatchHandler(c *gin.Context) {
 
 	if common.Rand() > server.sysconfig.P {
 		c.JSON(http.StatusOK, gin.H{"code": constant.SNATCH_NOT_LUCKY, "msg": constant.SNATCH_NOT_LUCKY_MESSAGE, "data": gin.H{}})
+		return
+	}
+
+	if server.bloomFilter.Test([]byte("uidStr")) {
+		c.JSON(http.StatusOK, gin.H{"code": constant.SNATCH_EXCEED_MAX_AMOUNT, "msg": constant.SNATCH_EXCEED_MAX_AMOUNT_MESSAGE, "data": gin.H{}})
+		return
 	}
 
 	packetid := time.Now().UnixNano() / 1000
@@ -43,6 +57,7 @@ func SnatchHandler(c *gin.Context) {
 	}
 	if retf == constant.SNATCH_EXCEED_MAX_AMOUNT {
 		c.JSON(http.StatusOK, gin.H{"code": constant.SNATCH_EXCEED_MAX_AMOUNT, "msg": constant.SNATCH_EXCEED_MAX_AMOUNT_MESSAGE, "data": gin.H{}})
+		server.bloomFilter.Add([]byte(uidStr))
 		return
 	}
 

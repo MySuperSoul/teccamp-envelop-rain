@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-11-02 19:16:45
- * @LastEditTime: 2021-11-07 17:33:02
+ * @LastEditTime: 2021-11-08 17:02:30
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /teccamp-envelop-rain/Router/apiserver.go
@@ -17,16 +17,18 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/bits-and-blooms/bloom"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis"
 	"gorm.io/gorm"
 )
 
 type APIServer struct {
-	sysconfig configs.SystemConfig
-	redisdb   *redis.Client
-	mysql     *gorm.DB
-	sendall   bool
+	sysconfig   configs.SystemConfig
+	redisdb     *redis.Client
+	mysql       *gorm.DB
+	sendall     bool
+	bloomFilter *bloom.BloomFilter
 }
 
 var server APIServer
@@ -41,6 +43,8 @@ func init() {
 	// get mysql connection
 	server.mysql = db.GetMySQLCursor()
 	server.sendall = false
+	// init the bloom filter
+	server.bloomFilter = bloom.NewWithEstimates(10000, 0.01)
 
 	// generate tables
 	db.GenerateTables(server.mysql)
