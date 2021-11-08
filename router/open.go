@@ -30,7 +30,7 @@ func OpenHandler(c *gin.Context) {
 	log.Infof("Envelop %s opened by %s.", packetid, uid)
 
 	// invalid user here
-	if n, _ := server.redisdb.Exists("user-" + uid).Result(); n == 0 {
+	if n, _ := server.redisdb.Exists(uid + "-wallet").Result(); n == 0 {
 		log.Errorf("Invalid user id: %s, block him.", uid)
 		c.JSON(http.StatusOK, gin.H{"code": constant.OPEN_INVALID_USER, "msg": constant.OPEN_INVALID_USER_MESSAGE, "data": gin.H{}})
 		return

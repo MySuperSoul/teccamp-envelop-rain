@@ -10,12 +10,12 @@ package constant
 
 const (
 	SNATCH_SUCCESS           int = 0
-	SNATCH_NOT_LUCKY         int = 1
-	SNATCH_NO_RED_PACKET     int = 2
-	SNATCH_EXCEED_MAX_AMOUNT int = 3
-	SNATCH_EMPTY_UID         int = 4
-	SNATCH_JSON_PARSE_ERROR  int = 5
-	SNATCH_BUSY              int = 6
+	SNATCH_NOT_LUCKY         int = -1
+	SNATCH_NO_RED_PACKET     int = -2
+	SNATCH_EXCEED_MAX_AMOUNT int = -3
+	SNATCH_EMPTY_UID         int = -4
+	SNATCH_JSON_PARSE_ERROR  int = -5
+	SNATCH_BUSY              int = -6
 )
 
 const (

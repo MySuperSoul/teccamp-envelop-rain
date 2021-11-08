@@ -89,6 +89,43 @@ func GetRedPacketsByUID(redisdb *redis.Client, uid string) ([]*RedPacket, int32)
 	return packets, balance
 }
 
+// keys: ["CurrentNum", ]
+// ARGV: [uidstr, timestamp, total_num, max_amount, p]
+// return: 0: success, -1: not lucky, -2: no packet, -3: user exceed (And cur num)
+
+func SnatchScript() *redis.Script {
+	return redis.NewScript(`
+		local timestamp = tonumber(ARGV[2])
+		local total_num = tonumber(ARGV[3])
+		local current_num = tonumber(redis.call('GET', KEYS[1]))
+
+		if current_num == total_num
+		then 
+			return -2
+		end
+
+		local wallet_name = ARGV[1] .. "-wallet"
+		local useramount = tonumber(redis.call('LLEN', wallet_name))
+		local maxamount = tonumber(ARGV[4])
+		if useramount == maxamount 
+		then
+			return -3
+		end
+
+		local p = tonumber(ARGV[5])
+		math.randomseed(timestamp)
+		local up = math.random()
+		if up > p
+		then
+			return -1
+		end
+
+		redis.call('SET', KEYS[1], current_num + 1)
+		redis.call('LPUSH', wallet_name, timestamp)
+		return current_num + 1
+	`)
+}
+
 func GenerateDecrScript() *redis.Script {
 	return redis.NewScript(`
 	local kc=tonumber(redis.call('GET',KEYS[1]))

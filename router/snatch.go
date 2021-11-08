@@ -1,7 +1,6 @@
 package router
 
 import (
-	"envelop-rain/common"
 	"envelop-rain/constant"
 	db "envelop-rain/repository"
 	"fmt"
@@ -29,45 +28,30 @@ func SnatchHandler(c *gin.Context) {
 		return
 	}
 
-	current_num := db.GetSingleValueFromRedis(server.redisdb, "CurrentNum", "int32").(int32)
-	if current_num >= server.sysconfig.TotalNum {
+	packetid := time.Now().UnixNano() / 1000
+	ret, _ := db.SnatchScript().Run(server.redisdb, []string{"CurrentNum"}, uidStr, packetid, server.sysconfig.TotalNum, server.sysconfig.MaxAmount, server.sysconfig.P).Result()
+	retf := int(ret.(int64))
+	if retf == constant.SNATCH_NO_RED_PACKET {
 		c.JSON(http.StatusOK, gin.H{"code": constant.SNATCH_NO_RED_PACKET, "msg": constant.SNATCH_NO_RED_PACKET_MESSAGE, "data": gin.H{}})
 		server.sendall = true
 		return
 	}
-
-	// Then perform later operations
-	// First judge whether has this user
-	if n, _ := server.redisdb.Exists(uidStr).Result(); n == 0 { // no this user
-		server.redisdb.SetNX("user-"+uidStr, 0, 0) // set amount to 0
-		// TODO: send to database to create this user with balance = 0
-	}
-
-	// Check whether exceed max amount
-	amount, _ := server.redisdb.Get("user-" + uidStr).Int64()
-	if int32(amount) == server.sysconfig.MaxAmount {
+	if retf == constant.SNATCH_EXCEED_MAX_AMOUNT {
 		c.JSON(http.StatusOK, gin.H{"code": constant.SNATCH_EXCEED_MAX_AMOUNT, "msg": constant.SNATCH_EXCEED_MAX_AMOUNT_MESSAGE, "data": gin.H{}})
 		return
 	}
-
-	// Then to judge whether the user is lucky enough
-	if common.Rand() > server.sysconfig.P {
+	if retf == constant.SNATCH_NOT_LUCKY {
 		c.JSON(http.StatusOK, gin.H{"code": constant.SNATCH_NOT_LUCKY, "msg": constant.SNATCH_NOT_LUCKY_MESSAGE, "data": gin.H{}})
 		return
 	}
 
-	// generate packet_id
-	packetid := time.Now().UnixNano() / 1000
-	// send message
+	// success snatch
 	c.JSON(http.StatusOK, gin.H{
 		"code": constant.SNATCH_SUCCESS,
 		"msg":  constant.SNATCH_SUCCESS_MESSAGE,
-		"data": gin.H{"envelop_id": packetid, "max_count": server.sysconfig.MaxAmount, "cur_count": int32(amount) + 1},
+		"data": gin.H{"envelop_id": packetid, "max_count": server.sysconfig.MaxAmount, "cur_count": retf},
 	})
 
-	// update user amount
-	server.redisdb.Incr("CurrentNum")
-	server.redisdb.Incr("user-" + uidStr)
 	// insert the redpacket
 	server.redisdb.HMSet("packet-"+fmt.Sprint(packetid), map[string]interface{}{
 		"userid":    uid,
@@ -75,7 +59,6 @@ func SnatchHandler(c *gin.Context) {
 		"opened":    false,
 		"timestamp": time.Now().UnixNano(),
 	})
-	server.redisdb.LPush(uidStr+"-wallet", packetid)
 
 	// TODO: send to database to create the redpacket
 }
