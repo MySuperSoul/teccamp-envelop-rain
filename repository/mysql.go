@@ -59,6 +59,38 @@ func CloseMySQL(db *gorm.DB) {
 }
 
 func GenerateTables(db *gorm.DB) {
-	db.AutoMigrate(&User{})
+	db.AutoMigrate(&DBSysConfig{})
 	db.AutoMigrate(&RedPacket{})
+}
+
+func CreatePacket(data map[string]interface{}, db *gorm.DB) {
+	packet := RedPacket{
+		PacketID:  data["packet_id"].(int64),
+		UserID:    data["uid"].(int32),
+		Value:     0,
+		Opened:    false,
+		Timestamp: data["timestamp"].(int64),
+	}
+	db.Create(&packet)
+}
+
+func UpdatePacket(data map[string]interface{}, db *gorm.DB) {
+	var packet RedPacket
+	db.Model(&RedPacket{}).Where("packet_id = ?", data["packet_id"].(int64)).First(&packet)
+	packet.Opened = true
+	packet.Value = data["value"].(int32)
+	db.Save(&packet)
+}
+
+func UpdateRemainToDB(data map[string]interface{}, db *gorm.DB) {
+	var remain DBSysConfig
+	db.Model(&DBSysConfig{}).First(&remain)
+	remain.RemainMoney = data["remain_money"].(int64)
+	remain.RemainNum = data["remain_num"].(int32)
+	db.Save(&remain)
+}
+
+func SetRemainToDB(remain_num int32, remain_money int64, db *gorm.DB) {
+	remain := DBSysConfig{RemainNum: remain_num, RemainMoney: remain_money}
+	db.Create(&remain)
 }

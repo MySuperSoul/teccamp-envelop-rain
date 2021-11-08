@@ -8,10 +8,10 @@
  */
 package repository
 
-type User struct {
-	UserID  int32 `gorm:"primaryKey"`
-	Amount  int32
-	Balance int32
+type DBSysConfig struct {
+	ID          int32 `gorm:"primaryKey"`
+	RemainNum   int32
+	RemainMoney int64
 }
 
 type RedPacket struct {

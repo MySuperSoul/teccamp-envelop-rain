@@ -81,3 +81,9 @@ const (
 	REQUEST_OPEN   int64 = 2
 	REQUEST_GETWL  int64 = 3
 )
+
+const (
+	CREATE_PACKET_TYPE string = "CreatePacket"
+	UPDATE_PACKET_TYPE string = "UpdatePacket"
+	UPDATE_REMAIN_TYPE string = "UpdateSysConfig"
+)

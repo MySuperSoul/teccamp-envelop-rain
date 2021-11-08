@@ -9,6 +9,7 @@
 package router
 
 import (
+	"encoding/json"
 	"envelop-rain/common"
 	"envelop-rain/constant"
 	db "envelop-rain/repository"
@@ -37,13 +38,13 @@ func SnatchHandler(c *gin.Context) {
 		return
 	}
 
-	if common.Rand() > server.sysconfig.P {
-		c.JSON(http.StatusOK, gin.H{"code": constant.SNATCH_NOT_LUCKY, "msg": constant.SNATCH_NOT_LUCKY_MESSAGE, "data": gin.H{}})
+	if server.bloomFilter.Test([]byte(uidStr)) {
+		c.JSON(http.StatusOK, gin.H{"code": constant.SNATCH_EXCEED_MAX_AMOUNT, "msg": constant.SNATCH_EXCEED_MAX_AMOUNT_MESSAGE, "data": gin.H{}})
 		return
 	}
 
-	if server.bloomFilter.Test([]byte("uidStr")) {
-		c.JSON(http.StatusOK, gin.H{"code": constant.SNATCH_EXCEED_MAX_AMOUNT, "msg": constant.SNATCH_EXCEED_MAX_AMOUNT_MESSAGE, "data": gin.H{}})
+	if common.Rand() > server.sysconfig.P {
+		c.JSON(http.StatusOK, gin.H{"code": constant.SNATCH_NOT_LUCKY, "msg": constant.SNATCH_NOT_LUCKY_MESSAGE, "data": gin.H{}})
 		return
 	}
 
@@ -69,12 +70,21 @@ func SnatchHandler(c *gin.Context) {
 	})
 
 	// insert the redpacket
+	timestamp := time.Now().UnixNano()
 	server.redisdb.HMSet("packet-"+fmt.Sprint(packetid), map[string]interface{}{
 		"userid":    uid,
 		"value":     0,
 		"opened":    false,
-		"timestamp": time.Now().UnixNano(),
+		"timestamp": timestamp,
 	})
 
 	// TODO: send to database to create the redpacket
+	packet_info := map[string]interface{}{
+		"type":      constant.CREATE_PACKET_TYPE,
+		"uid":       uid,
+		"packet_id": packetid,
+		"timestamp": timestamp,
+	}
+	message, _ := json.Marshal(packet_info)
+	server.producer.SendDBMessage(message)
 }

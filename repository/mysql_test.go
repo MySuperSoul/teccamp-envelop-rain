@@ -13,15 +13,15 @@ func TestMysql(t *testing.T) {
 
 	GenerateTables(db)
 	// user表中插入一条记录
-	user := User{UserID: 111111, Amount: 0, Balance: 0.}
-	db.Create(&user)
+	packet := RedPacket{PacketID: 12345, UserID: 1234, Value: 30, Opened: false, Timestamp: 123456}
+	db.Create(&packet)
 	// user表查找
-	var userDB User
-	db.Where(&user).First(&userDB)
-	if userDB != user {
+	var p RedPacket
+	db.Where(&packet).First(&p)
+	if p != packet {
 		t.Fatal("select from user failed")
 	}
-	db.Delete(&user)
+	db.Delete(&packet)
 
 	CloseMySQL(db)
 }

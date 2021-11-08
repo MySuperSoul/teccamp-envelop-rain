@@ -29,6 +29,8 @@ type APIServer struct {
 	mysql       *gorm.DB
 	sendall     bool
 	bloomFilter *bloom.BloomFilter
+	producer    *middleware.KafkaProducer
+	consumer    *middleware.KafkaConsumer
 }
 
 var server APIServer
@@ -48,8 +50,14 @@ func init() {
 
 	// generate tables
 	db.GenerateTables(server.mysql)
+	db.SetRemainToDB(server.sysconfig.TotalNum, server.sysconfig.TotalMoney, server.mysql)
 	// set config to redis
 	configs.SetConfigToRedis(&server.sysconfig, server.redisdb)
+
+	// init kafka producer and consumer
+	server.producer = middleware.GetKafkaProducer(configs.GlobalConfig.GetString("Kafka.Topic"))
+	server.consumer = middleware.GetKafkaConsumer()
+	server.consumer.StartConsume(configs.GlobalConfig.GetString("Kafka.Topic"), server.mysql)
 }
 
 func APIServerRun() {
