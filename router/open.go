@@ -64,6 +64,5 @@ func OpenHandler(c *gin.Context) {
 		"opened": true,
 	})
 
-	// TODO: Update balance to user table
-	// TODO: Update opened field to packet table
+	// TODO: Update opened field and value to packet table
 }

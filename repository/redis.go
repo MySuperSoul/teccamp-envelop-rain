@@ -90,7 +90,7 @@ func GetRedPacketsByUID(redisdb *redis.Client, uid string) ([]*RedPacket, int32)
 }
 
 // keys: ["CurrentNum", ]
-// ARGV: [uidstr, timestamp, total_num, max_amount, p]
+// ARGV: [uidstr, timestamp, total_num, max_amount]
 // return: 0: success, -1: not lucky, -2: no packet, -3: user exceed (And cur num)
 
 func SnatchScript() *redis.Script {
@@ -110,14 +110,6 @@ func SnatchScript() *redis.Script {
 		if useramount == maxamount 
 		then
 			return -3
-		end
-
-		local p = tonumber(ARGV[5])
-		math.randomseed(timestamp)
-		local up = math.random()
-		if up > p
-		then
-			return -1
 		end
 
 		redis.call('SET', KEYS[1], current_num + 1)

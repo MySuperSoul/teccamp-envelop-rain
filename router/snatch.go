@@ -1,6 +1,7 @@
 package router
 
 import (
+	"envelop-rain/common"
 	"envelop-rain/constant"
 	db "envelop-rain/repository"
 	"fmt"
@@ -28,6 +29,10 @@ func SnatchHandler(c *gin.Context) {
 		return
 	}
 
+	if common.Rand() > server.sysconfig.P {
+		c.JSON(http.StatusOK, gin.H{"code": constant.SNATCH_NOT_LUCKY, "msg": constant.SNATCH_NOT_LUCKY_MESSAGE, "data": gin.H{}})
+	}
+
 	packetid := time.Now().UnixNano() / 1000
 	ret, _ := db.SnatchScript().Run(server.redisdb, []string{"CurrentNum"}, uidStr, packetid, server.sysconfig.TotalNum, server.sysconfig.MaxAmount, server.sysconfig.P).Result()
 	retf := int(ret.(int64))
@@ -38,10 +43,6 @@ func SnatchHandler(c *gin.Context) {
 	}
 	if retf == constant.SNATCH_EXCEED_MAX_AMOUNT {
 		c.JSON(http.StatusOK, gin.H{"code": constant.SNATCH_EXCEED_MAX_AMOUNT, "msg": constant.SNATCH_EXCEED_MAX_AMOUNT_MESSAGE, "data": gin.H{}})
-		return
-	}
-	if retf == constant.SNATCH_NOT_LUCKY {
-		c.JSON(http.StatusOK, gin.H{"code": constant.SNATCH_NOT_LUCKY, "msg": constant.SNATCH_NOT_LUCKY_MESSAGE, "data": gin.H{}})
 		return
 	}
 
