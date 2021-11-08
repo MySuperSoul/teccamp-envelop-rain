@@ -1,11 +1,3 @@
-/*
- * @Author: your name
- * @Date: 2021-11-01 14:56:45
- * @LastEditTime: 2021-11-02 19:19:27
- * @LastEditors: Please set LastEditors
- * @Description: In User Settings Edit
- * @FilePath: /teccamp-envelop-rain/db/db_test.go
- */
 package repository
 
 import (
@@ -109,28 +101,6 @@ func TestRecoverFromRedis(t *testing.T) {
 	if l, _ := redisdb.LLen("123-wallet").Result(); l != 2 {
 		t.Fatal("Get length wrong")
 	}
-}
-
-func TestMysql(t *testing.T) {
-	db := GetMySQLCursor()
-
-	if db == nil {
-		t.Failed()
-	}
-
-	GenerateTables(db)
-	// user表中插入一条记录
-	user := User{UserID: 111111, Amount: 0, Balance: 0.}
-	db.Create(&user)
-	// user表查找
-	var userDB User
-	db.Where(&user).First(&userDB)
-	if userDB != user {
-		t.Fatal("select from user failed")
-	}
-	db.Delete(&user)
-
-	CloseMySQL(db)
 }
 
 func TestGeneratePacketScript(t *testing.T) {

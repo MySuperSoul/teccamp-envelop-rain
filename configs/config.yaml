@@ -26,3 +26,8 @@ Redis:
 #     RedisAddr: localhost:6379
 #     RedisPassword: 
 #     RedisPoolSize: 100
+
+Limiter:
+    SnatchPerSecond: 20000
+    OpenPerMinute: 10000
+    WalletPerMinute: 10000

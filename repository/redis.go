@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-11-01 13:02:08
- * @LastEditTime: 2021-11-04 16:53:13
+ * @LastEditTime: 2021-11-07 17:15:14
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /teccamp-envelop-rain/db/redis.go
@@ -134,5 +134,77 @@ func GeneratePacketScript() *redis.Script {
 	redis.call('SET', KEYS[1], remain_num - 1)
 	redis.call('SET', KEYS[2], remain_money - value)
 	return value
+	`)
+}
+
+func GenerateUserAmountDecrScript() *redis.Script {
+	return redis.NewScript(`
+	local kUserAmount=tonumber(redis.call('HGET',KEYS[1],KEYS[2]))
+
+	if kUserAmount==nil
+	then 
+		return -1
+	end
+
+	local newkUserAmount=kUserAmount+1
+
+	if newkUserAmount > tonumber(ARGV[1])
+	then
+		return 0
+	else
+		redis.call('HSET',KEYS[1],KEYS[2],newkUserAmount)
+		return newkUserAmount
+	end 
+	`)
+}
+
+func GenerateOpenPacketScript() *redis.Script {
+	return redis.NewScript(`
+	local function toboolean(str)
+    	local bool = false
+    	if str == "true" then
+        	bool = true
+    	end
+    	return bool
+	end
+	local kOpened=toboolean(redis.call('HGET',KEYS[1],KEYS[2]))
+	if kOpened==nil
+	then 
+		return -1
+	end
+
+	if kOpened==true
+	then
+		return 0
+	else
+		local kValue=tonumber(redis.call('HGET',KEYS[1],KEYS[3]))
+		redis.call('HINCRBY',KEYS[4],KEYS[5],kValue)
+		redis.call('HSET',KEYS[1],KEYS[2],'true')
+		return kValue
+	end
+	`)
+}
+
+func GenerateChangeScript() *redis.Script {
+	return redis.NewScript(`
+	local kc=tonumber(redis.call('GET',KEYS[1]))
+	local kmoney=tonumber(redis.call('GET',KEYS[2])) 
+
+	if kc==nil or kmoney==nil
+	then 
+		return -1
+	end
+
+	local newkc=kc-ARGV[1]
+	local newkmoney=kmoney - ARGV[2]
+
+	if newkc < 0 or newkmoney < 0
+	then
+		return 0
+	else
+		redis.call('SET',KEYS[1],newkc)
+		redis.call('SET',KEYS[2],newkmoney)
+		return 1
+	end
 	`)
 }

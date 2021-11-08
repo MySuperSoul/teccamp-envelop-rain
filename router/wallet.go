@@ -2,6 +2,7 @@ package router
 
 import (
 	"envelop-rain/configs"
+	"envelop-rain/constant"
 	db "envelop-rain/repository"
 	"fmt"
 	"net/http"
@@ -13,11 +14,11 @@ import (
 func WalletListHandler(c *gin.Context) {
 	json_str := make(map[string]int32)
 	if err := c.BindJSON(&json_str); err != nil {
-		c.JSON(http.StatusOK, gin.H{"code": WALLET_JSON_PARSE_ERROR, "msg": WALLET_JSON_PARSE_ERROR_MESSAGE, "data": gin.H{}})
+		c.JSON(http.StatusOK, gin.H{"code": constant.WALLET_JSON_PARSE_ERROR, "msg": constant.WALLET_JSON_PARSE_ERROR_MESSAGE, "data": gin.H{}})
 		return
 	}
 	if _, ok := json_str["uid"]; !ok {
-		c.JSON(http.StatusOK, gin.H{"code": WALLET_EMPTY_ID, "msg": WALLET_EMPTY_ID_MESSAGE, "data": gin.H{}})
+		c.JSON(http.StatusOK, gin.H{"code": constant.WALLET_EMPTY_ID, "msg": constant.WALLET_EMPTY_ID_MESSAGE, "data": gin.H{}})
 		return
 	}
 	uid := fmt.Sprint(json_str["uid"])
@@ -30,8 +31,8 @@ func WalletListHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"code": WALLET_SUCCESS,
-		"msg":  WALLET_SUCCESS_MESSAGE,
+		"code": constant.WALLET_SUCCESS,
+		"msg":  constant.WALLET_SUCCESS_MESSAGE,
 		"data": gin.H{
 			"amount":       balance,
 			"envelop_list": envelops,
