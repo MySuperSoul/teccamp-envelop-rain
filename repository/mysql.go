@@ -65,28 +65,28 @@ func GenerateTables(db *gorm.DB) {
 
 func CreatePacket(data map[string]interface{}, db *gorm.DB) {
 	packet := RedPacket{
-		PacketID:  data["packet_id"].(int64),
-		UserID:    data["uid"].(int32),
+		PacketID:  int64(data["packet_id"].(float64)),
+		UserID:    int32(data["uid"].(float64)),
 		Value:     0,
 		Opened:    false,
-		Timestamp: data["timestamp"].(int64),
+		Timestamp: int64(data["timestamp"].(float64)),
 	}
 	db.Create(&packet)
 }
 
 func UpdatePacket(data map[string]interface{}, db *gorm.DB) {
 	var packet RedPacket
-	db.Model(&RedPacket{}).Where("packet_id = ?", data["packet_id"].(int64)).First(&packet)
+	db.Model(&RedPacket{}).Where("packet_id = ?", int64(data["packet_id"].(float64))).First(&packet)
 	packet.Opened = true
-	packet.Value = data["value"].(int32)
+	packet.Value = int32(data["value"].(float64))
 	db.Save(&packet)
 }
 
 func UpdateRemainToDB(data map[string]interface{}, db *gorm.DB) {
 	var remain DBSysConfig
 	db.Model(&DBSysConfig{}).First(&remain)
-	remain.RemainMoney = data["remain_money"].(int64)
-	remain.RemainNum = data["remain_num"].(int32)
+	remain.RemainMoney -= int64(data["money"].(float64))
+	remain.RemainNum -= 1
 	db.Save(&remain)
 }
 

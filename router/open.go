@@ -1,6 +1,7 @@
 package router
 
 import (
+	"encoding/json"
 	"envelop-rain/common"
 	"fmt"
 	"net/http"
@@ -64,5 +65,19 @@ func OpenHandler(c *gin.Context) {
 		"opened": true,
 	})
 
-	// TODO: Update opened field and value to packet table
+	// TODO: Update opened field and value to packet table and update remain
+	packet_info := map[string]interface{}{
+		"type":      constant.UPDATE_PACKET_TYPE,
+		"packet_id": pair_id.Packetid,
+		"value":     value,
+	}
+	data, _ := json.Marshal(packet_info)
+	server.producer.SendDBMessage(data)
+
+	info := map[string]interface{}{
+		"type":  constant.UPDATE_REMAIN_TYPE,
+		"money": value,
+	}
+	info_data, _ := json.Marshal(info)
+	server.producer.SendDBMessage(info_data)
 }
