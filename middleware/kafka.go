@@ -66,7 +66,6 @@ func (consumer *KafkaConsumer) ConsumeByPartitionID(id int32, topic_name string,
 		logrus.Fatal("ConsumePartition err: ", err)
 	}
 	for message := range partitionConsumer.Messages() {
-		logrus.Printf("[Consumer] partitionid: %d; offset:%d, value: %s\n", message.Partition, message.Offset, string(message.Value))
 		var data map[string]interface{}
 		err := json.Unmarshal(message.Value, &data)
 		if err != nil {

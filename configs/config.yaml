@@ -34,4 +34,4 @@ Limiter:
 
 Kafka:
     BrokerAddr: localhost:9092
-    Topic: testdb2
+    Topic: testdb

@@ -46,7 +46,7 @@ func init() {
 	server.mysql = db.GetMySQLCursor()
 	server.sendall = false
 	// init the bloom filter
-	server.bloomFilter = bloom.NewWithEstimates(10000, 0.01)
+	server.bloomFilter = bloom.NewWithEstimates(1000000, 0.01)
 
 	// generate tables
 	db.GenerateTables(server.mysql)
