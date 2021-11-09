@@ -87,3 +87,7 @@ const (
 	UPDATE_PACKET_TYPE string = "UpdatePacket"
 	UPDATE_REMAIN_TYPE string = "UpdateSysConfig"
 )
+
+const (
+	SEED int64 = 999999999999999
+)
