@@ -35,3 +35,7 @@ Limiter:
 Kafka:
     BrokerAddr: kafka-zpbvh1wawffzt3.cn-beijing.kafka-internal.ivolces.com:9092
     Topic: dbtest
+
+# Kafka:
+#     BrokerAddr: localhost:9092
+#     Topic: dbtest

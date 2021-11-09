@@ -14,6 +14,7 @@ import (
 	"envelop-rain/constant"
 	db "envelop-rain/repository"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"time"
 
@@ -48,7 +49,8 @@ func SnatchHandler(c *gin.Context) {
 		return
 	}
 
-	packetid := time.Now().UnixNano() / 1000
+	// generate packet id
+	packetid := time.Now().UnixNano()/100 + rand.Int63n(9999999999)
 	ret, _ := db.SnatchScript().Run(server.redisdb, []string{"CurrentNum"}, uidStr, packetid, server.sysconfig.TotalNum, server.sysconfig.MaxAmount, server.sysconfig.P).Result()
 	retf := int(ret.(int64))
 	if retf == constant.SNATCH_NO_RED_PACKET {

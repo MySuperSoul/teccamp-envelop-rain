@@ -99,7 +99,7 @@ func SnatchScript() *redis.Script {
 		local total_num = tonumber(ARGV[3])
 		local current_num = tonumber(redis.call('GET', KEYS[1]))
 
-		if current_num == total_num
+		if current_num >= total_num
 		then 
 			return -2
 		end
@@ -107,7 +107,7 @@ func SnatchScript() *redis.Script {
 		local wallet_name = ARGV[1] .. "-wallet"
 		local useramount = tonumber(redis.call('LLEN', wallet_name))
 		local maxamount = tonumber(ARGV[4])
-		if useramount == maxamount 
+		if useramount >= maxamount 
 		then
 			return -3
 		end
