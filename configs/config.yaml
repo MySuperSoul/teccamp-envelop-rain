@@ -1,10 +1,10 @@
 common:
-    TotalMoney: 100000000
-    TotalNum: 1000000
+    TotalMoney: 1000000000
+    TotalNum: 10000000
     MinMoney: 1
     MaxMoney: 200
     MaxAmount: 5
-    P: 0.2
+    P: 0.5
 
 Database:
     UserName: group7
