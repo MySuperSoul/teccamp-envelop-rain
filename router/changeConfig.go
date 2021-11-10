@@ -15,37 +15,28 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	log "github.com/sirupsen/logrus"
 )
 
 /**
  * @description:
  * @param {*gin.Context} c
- * @param {int32} newTotalNum
  * @param {int64} newTotalmoney
  * @return {*} -1:error for lua 	0: envelop has been opened		1: change success
  */
-func ChangeConfig(c *gin.Context, newTotalNum int32, newTotalmoney int64) int {
+func ChangeConfig(c *gin.Context, newTotalmoney int64) int {
 	changeScript := db.GenerateChangeScript()
-	diffNum := server.sysconfig.TotalNum - newTotalNum
 	diffMoney := server.sysconfig.TotalMoney - newTotalmoney
-	ret, err := changeScript.Run(server.redisdb, []string{"RemainNum", "RemainMoney"}, diffNum, diffMoney).Result()
+	ret, err := changeScript.Run(server.redisdb, []string{"RemainMoney"}, diffMoney).Result()
 	if err != nil || ret.(int64) == -1 {
-		log.Debug(err)
+		server.logger.Debug(err)
 		c.JSON(http.StatusOK, gin.H{"code": constant.CHANGE_INVALID, "msg": constant.CHANGE_INVALID_MESSAGE, "data": gin.H{}})
 		return -1
-	}
-	if ret.(int64) == 0 {
-		log.Errorf("")
-		c.JSON(http.StatusOK, gin.H{"code": constant.CHANGE_INVALID, "msg": constant.CHANGE_INVALID_MESSAGE, "data": gin.H{}})
-		return 0
 	}
 	return 1
 }
 
 type money_setting struct {
 	NewTotalmoney int64 `json:"totalmoney"`
-	NewTotalNum   int32 `json:"totalnum"`
 }
 
 func ChangeConfigsHandler(c *gin.Context) {
@@ -55,16 +46,12 @@ func ChangeConfigsHandler(c *gin.Context) {
 		return
 	}
 	//update the config
-	ret := ChangeConfig(c, setting.NewTotalNum, setting.NewTotalmoney)
+	ret := ChangeConfig(c, setting.NewTotalmoney)
 	if ret < 1 {
 		return
 	}
 	server.sysconfig.TotalMoney = setting.NewTotalmoney
-	server.sysconfig.TotalNum = setting.NewTotalNum
-	message := fmt.Sprintf("TotalMoney: from %d to %d	TotalNum: from %d to %d",
-		server.sysconfig.TotalMoney, setting.NewTotalmoney,
-		server.sysconfig.TotalNum, setting.NewTotalNum)
-	log.Debug(message)
+	message := fmt.Sprintf("TotalMoney: from %d to %d", server.sysconfig.TotalMoney, setting.NewTotalmoney)
+	server.logger.Debug(message)
 	c.JSON(http.StatusOK, gin.H{"code": constant.CHANGE_SUCCESS, "msg": constant.CHANGE_SUCCESS_MESSAGE})
-
 }

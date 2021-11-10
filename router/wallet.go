@@ -8,7 +8,6 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	log "github.com/sirupsen/logrus"
 )
 
 func WalletListHandler(c *gin.Context) {
@@ -17,14 +16,10 @@ func WalletListHandler(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"code": constant.WALLET_JSON_PARSE_ERROR, "msg": constant.WALLET_JSON_PARSE_ERROR_MESSAGE, "data": gin.H{}})
 		return
 	}
-	if _, ok := json_str["uid"]; !ok {
-		c.JSON(http.StatusOK, gin.H{"code": constant.WALLET_EMPTY_ID, "msg": constant.WALLET_EMPTY_ID_MESSAGE, "data": gin.H{}})
-		return
-	}
-	uid := fmt.Sprint(json_str["uid"])
-	log.Infof("Query %s's wallet", uid)
 
-	packets, balance := db.GetRedPacketsByUID(server.redisdb, uid)
+	uid := fmt.Sprint(json_str["uid"])
+
+	packets, balance := db.GetRedPacketsByUID(server.redisdb, server.mysql, uid)
 	envelops := []gin.H{}
 	for _, p := range packets {
 		envelops = append(envelops, p.JsonFormat())

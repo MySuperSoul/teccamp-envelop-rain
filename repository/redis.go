@@ -16,6 +16,7 @@ import (
 
 	"github.com/go-redis/redis"
 	log "github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 )
 
 // redis config
@@ -62,19 +63,31 @@ func GetSingleValueFromRedis(redisdb *redis.Client, key string, datatype string)
 	return common.ConvertString(val, datatype)
 }
 
-func GetRedPacketsByUID(redisdb *redis.Client, uid string) ([]*RedPacket, int32) {
+func GetRedPacketsByUID(redisdb *redis.Client, mysql *gorm.DB, uid string) ([]*RedPacket, int32) {
 	var packets []*RedPacket
 	balance := int32(0)
 	packet_ids, _ := redisdb.LRange(uid+"-wallet", 0, -1).Result()
 	for i := len(packet_ids) - 1; i >= 0; i-- {
+		var packet RedPacket
 		packet_id := packet_ids[i]
-		vals, _ := redisdb.HGetAll("packet-" + packet_id).Result()
-		packet := RedPacket{
-			PacketID:  common.ConvertString(packet_id, "int64").(int64),
-			UserID:    common.ConvertString(vals["userid"], "int32").(int32),
-			Value:     common.ConvertString(vals["value"], "int32").(int32),
-			Opened:    common.ConvertString(vals["opened"], "bool").(bool),
-			Timestamp: common.ConvertString(vals["timestamp"], "int64").(int64),
+		if n, _ := redisdb.Exists("packet-" + packet_id).Result(); n == 0 { // not in redis
+			// Then fetch db and set to redis
+			mysql.Where("packet_id = ?", common.ConvertString(packet_id, "int64").(int64)).Find(&packet)
+			redisdb.HMSet("packet-"+packet_id, map[string]interface{}{
+				"userid":    packet.UserID,
+				"value":     packet.Value,
+				"opened":    packet.Opened,
+				"timestamp": packet.Timestamp,
+			})
+		} else { // in redis cache
+			vals, _ := redisdb.HGetAll("packet-" + packet_id).Result()
+			packet = RedPacket{
+				PacketID:  common.ConvertString(packet_id, "int64").(int64),
+				UserID:    common.ConvertString(vals["userid"], "int32").(int32),
+				Value:     common.ConvertString(vals["value"], "int32").(int32),
+				Opened:    common.ConvertString(vals["opened"], "bool").(bool),
+				Timestamp: common.ConvertString(vals["timestamp"], "int64").(int64),
+			}
 		}
 		packets = append(packets, &packet)
 		if packet.Opened {
@@ -114,7 +127,7 @@ func SnatchScript() *redis.Script {
 
 		redis.call('SET', KEYS[1], current_num + 1)
 		redis.call('LPUSH', wallet_name, timestamp)
-		return current_num + 1
+		return useramount + 1
 	`)
 }
 
@@ -126,6 +139,11 @@ func GeneratePacketScript() *redis.Script {
 	local remain_num = tonumber(redis.call('GET', KEYS[1]))
 	local remain_money = tonumber(redis.call('GET',KEYS[2]))
 	local value = 0
+
+	if remain_num < 0 or remain_money < 0
+	then
+		return -1
+	end
 
 	if remain_num == 1
 	then
@@ -144,24 +162,13 @@ func GeneratePacketScript() *redis.Script {
 
 func GenerateChangeScript() *redis.Script {
 	return redis.NewScript(`
-	local kc=tonumber(redis.call('GET',KEYS[1]))
-	local kmoney=tonumber(redis.call('GET',KEYS[2])) 
-
-	if kc==nil or kmoney==nil
+	local kmoney=tonumber(redis.call('GET',KEYS[1])) 
+	if kmoney==nil
 	then 
 		return -1
 	end
-
-	local newkc=kc-ARGV[1]
-	local newkmoney=kmoney - ARGV[2]
-
-	if newkc < 0 or newkmoney < 0
-	then
-		return 0
-	else
-		redis.call('SET',KEYS[1],newkc)
-		redis.call('SET',KEYS[2],newkmoney)
-		return 1
-	end
+	local newkmoney=kmoney - ARGV[1]
+	redis.call('SET',KEYS[1],newkmoney)
+	return 1
 	`)
 }

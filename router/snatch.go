@@ -27,10 +27,7 @@ func SnatchHandler(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"code": constant.SNATCH_JSON_PARSE_ERROR, "msg": constant.SNATCH_JSON_PARSE_ERROR_MESSAGE, "data": gin.H{}})
 		return
 	}
-	if _, ok := json_str["uid"]; !ok {
-		c.JSON(http.StatusOK, gin.H{"code": constant.SNATCH_EMPTY_UID, "msg": constant.SNATCH_EMPTY_UID_MESSAGE, "data": gin.H{}})
-		return
-	}
+
 	uid := json_str["uid"]
 	uidStr := fmt.Sprintf("%d", uid)
 	// first to judge whether has packet left
@@ -39,7 +36,7 @@ func SnatchHandler(c *gin.Context) {
 		return
 	}
 
-	if server.bloomFilter.Test([]byte(uidStr)) {
+	if server.bloomFilter.TestString(uidStr) {
 		c.JSON(http.StatusOK, gin.H{"code": constant.SNATCH_EXCEED_MAX_AMOUNT, "msg": constant.SNATCH_EXCEED_MAX_AMOUNT_MESSAGE, "data": gin.H{}})
 		return
 	}
@@ -60,8 +57,12 @@ func SnatchHandler(c *gin.Context) {
 	}
 	if retf == constant.SNATCH_EXCEED_MAX_AMOUNT {
 		c.JSON(http.StatusOK, gin.H{"code": constant.SNATCH_EXCEED_MAX_AMOUNT, "msg": constant.SNATCH_EXCEED_MAX_AMOUNT_MESSAGE, "data": gin.H{}})
-		server.bloomFilter.Add([]byte(uidStr))
+		server.bloomFilter.AddString(uidStr)
 		return
+	}
+
+	if retf == int(server.sysconfig.MaxAmount) {
+		server.bloomFilter.AddString(uidStr)
 	}
 
 	// success snatch
@@ -80,7 +81,7 @@ func SnatchHandler(c *gin.Context) {
 		"timestamp": timestamp,
 	})
 
-	// TODO: send to database to create the redpacket
+	// send to database to create the redpacket
 	packet_info := map[string]interface{}{
 		"type":      constant.CREATE_PACKET_TYPE,
 		"uid":       uid,

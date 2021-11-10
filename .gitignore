@@ -3,3 +3,4 @@ pkg/
 .vscode/
 *envelop-rain*
 *.test
+*.log

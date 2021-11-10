@@ -28,9 +28,9 @@ Redis:
 #     RedisPoolSize: 100
 
 Limiter:
-    SnatchPerSecond: 40000
-    OpenPerMinute: 10000
-    WalletPerMinute: 10000
+    SnatchPerSecond: 50000
+    OpenPerSecond: 20000
+    WalletPerSecond: 20000
 
 Kafka:
     BrokerAddr: kafka-zpbvh1wawffzt3.cn-beijing.kafka-internal.ivolces.com:9092
@@ -38,4 +38,7 @@ Kafka:
 
 # Kafka:
 #     BrokerAddr: localhost:9092
-#     Topic: dbtest
+#     Topic: dbtest7
+
+Logger:
+    LogPath: ./app.log

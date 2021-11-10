@@ -34,7 +34,7 @@ const (
 	OPEN_INVALID_PACKET   int = 2
 	OPEN_REPEAT           int = 3
 	OPEN_NOT_MATCH        int = 4
-	OPEN_EMPTY_ID         int = 5
+	OPEN_NO_MONEY         int = 5
 	OPEN_JSON_PARSE_ERROR int = 6
 	OPEN_BUSY             int = 7
 )
@@ -45,7 +45,7 @@ const (
 	OPEN_INVALID_PACKET_MESSAGE   string = "invalid packet id"
 	OPEN_REPEAT_MESSAGE           string = "packet has been opened yet"
 	OPEN_NOT_MATCH_MESSAGE        string = "user don't have this packet"
-	OPEN_EMPTY_ID_MESSAGE         string = "input a empty uid or packet id"
+	OPEN_NO_MONEY_MESSAGE         string = "no money remain now"
 	OPEN_JSON_PARSE_ERROR_MESSAGE string = "json parsing error"
 	OPEN_BUSY_MESSAGE             string = "server busy, try again"
 )
