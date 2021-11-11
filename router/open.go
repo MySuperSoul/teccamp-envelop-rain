@@ -93,6 +93,7 @@ func OpenHandler(c *gin.Context) {
 	info := map[string]interface{}{
 		"type":  constant.UPDATE_REMAIN_TYPE,
 		"money": value,
+		"num":   1,
 	}
 	info_data, _ := json.Marshal(info)
 	server.producer.SendDBMessage(info_data)

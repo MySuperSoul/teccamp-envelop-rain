@@ -23,9 +23,8 @@ import (
  * @param {int64} newTotalmoney
  * @return {*} -1:error for lua 	0: envelop has been opened		1: change success
  */
-func ChangeConfig(c *gin.Context, newTotalmoney int64) int {
+func ChangeConfig(c *gin.Context, diffMoney int64) int {
 	changeScript := db.GenerateChangeScript()
-	diffMoney := server.sysconfig.TotalMoney - newTotalmoney
 	ret, err := changeScript.Run(server.redisdb, []string{"RemainMoney"}, diffMoney).Result()
 	if err != nil || ret.(int64) == -1 {
 		server.logger.Debug(err)
@@ -46,7 +45,8 @@ func ChangeConfigsHandler(c *gin.Context) {
 		return
 	}
 	//update the config
-	ret := ChangeConfig(c, setting.NewTotalmoney)
+	diffMoney := server.sysconfig.TotalMoney - setting.NewTotalmoney
+	ret := ChangeConfig(c, diffMoney)
 	if ret < 1 {
 		return
 	}
@@ -54,4 +54,11 @@ func ChangeConfigsHandler(c *gin.Context) {
 	message := fmt.Sprintf("TotalMoney: from %d to %d", server.sysconfig.TotalMoney, setting.NewTotalmoney)
 	server.logger.Debug(message)
 	c.JSON(http.StatusOK, gin.H{"code": constant.CHANGE_SUCCESS, "msg": constant.CHANGE_SUCCESS_MESSAGE})
+
+	// update remain money to db
+	info := map[string]interface{}{
+		"money": diffMoney,
+		"num":   0,
+	}
+	db.UpdateRemainToDB(info, server.mysql)
 }

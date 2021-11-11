@@ -86,7 +86,7 @@ func UpdateRemainToDB(data map[string]interface{}, db *gorm.DB) {
 	var remain DBSysConfig
 	db.Model(&DBSysConfig{}).First(&remain)
 	remain.RemainMoney -= int64(data["money"].(float64))
-	remain.RemainNum -= 1
+	remain.RemainNum -= int32(data["num"].(float64))
 	db.Save(&remain)
 }
 
