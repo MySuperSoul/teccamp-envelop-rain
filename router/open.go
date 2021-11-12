@@ -21,7 +21,7 @@ type uid_envelopid struct {
 func OpenHandler(c *gin.Context) {
 	var pair_id uid_envelopid
 	if err := c.ShouldBindJSON(&pair_id); err != nil {
-		c.JSON(http.StatusOK, gin.H{"code": constant.OPEN_JSON_PARSE_ERROR, "msg": constant.OPEN_JSON_PARSE_ERROR_MESSAGE, "data": gin.H{}})
+		c.JSON(http.StatusBadRequest, gin.H{"code": constant.OPEN_JSON_PARSE_ERROR, "msg": constant.OPEN_JSON_PARSE_ERROR_MESSAGE, "data": gin.H{}})
 		return
 	}
 
@@ -64,7 +64,7 @@ func OpenHandler(c *gin.Context) {
 	}
 
 	// generate value here
-	v, _ := db.GeneratePacketScript().Run(server.redisdb, []string{"RemainNum", "RemainMoney"}, server.sysconfig.MaxMoney, server.sysconfig.MinMoney, time.Now().Nanosecond()).Result()
+	v, _ := db.GeneratePacketScript().Run(server.redisdb, []string{"RemainNum", "RemainMoney"}, server.sysconfig.MaxMoney, server.sysconfig.MinMoney, time.Now().Nanosecond(), packetid).Result()
 	value := int32(v.(int64))
 
 	if value == -1 {
@@ -75,11 +75,6 @@ func OpenHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"code": constant.OPEN_SUCCESS, "msg": constant.OPEN_SUCCESS_MESSAGE, "data": gin.H{"value": value}})
-
-	server.redisdb.HMSet("packet-"+packetid, map[string]interface{}{
-		"value":  value,
-		"opened": true,
-	})
 
 	// Update opened field and value to packet table and update remain
 	packet_info := map[string]interface{}{

@@ -12,6 +12,10 @@ type DBSysConfig struct {
 	ID          int32 `gorm:"primaryKey"`
 	RemainNum   int32
 	RemainMoney int64
+	TotalMoney  int64
+	TotalNum    int32
+	MaxAmount   int32
+	P           float32
 }
 
 type RedPacket struct {

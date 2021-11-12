@@ -30,13 +30,13 @@ const (
 
 const (
 	OPEN_SUCCESS          int = 0
-	OPEN_INVALID_USER     int = 1
-	OPEN_INVALID_PACKET   int = 2
-	OPEN_REPEAT           int = 3
-	OPEN_NOT_MATCH        int = 4
-	OPEN_NO_MONEY         int = 5
-	OPEN_JSON_PARSE_ERROR int = 6
-	OPEN_BUSY             int = 7
+	OPEN_INVALID_USER     int = -1
+	OPEN_INVALID_PACKET   int = -2
+	OPEN_REPEAT           int = -3
+	OPEN_NOT_MATCH        int = -4
+	OPEN_NO_MONEY         int = -5
+	OPEN_JSON_PARSE_ERROR int = -6
+	OPEN_BUSY             int = -7
 )
 
 const (
@@ -52,9 +52,9 @@ const (
 
 const (
 	WALLET_SUCCESS          int = 0
-	WALLET_EMPTY_ID         int = 1
-	WALLET_JSON_PARSE_ERROR int = 2
-	WALLET_BUSY             int = 3
+	WALLET_EMPTY_ID         int = -1
+	WALLET_JSON_PARSE_ERROR int = -2
+	WALLET_BUSY             int = -3
 )
 
 const (
@@ -66,8 +66,8 @@ const (
 
 const (
 	CHANGE_SUCCESS          int = 0
-	CHANGE_JSON_PARSE_ERROR int = 1
-	CHANGE_INVALID          int = 2
+	CHANGE_JSON_PARSE_ERROR int = -1
+	CHANGE_INVALID          int = -2
 )
 
 const (

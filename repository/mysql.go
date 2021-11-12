@@ -90,7 +90,15 @@ func UpdateRemainToDB(data map[string]interface{}, db *gorm.DB) {
 	db.Save(&remain)
 }
 
-func SetRemainToDB(remain_num int32, remain_money int64, db *gorm.DB) {
-	remain := DBSysConfig{ID: 1, RemainNum: remain_num, RemainMoney: remain_money}
+func SetRemainToDB(config *configs.SystemConfig, db *gorm.DB) {
+	remain := DBSysConfig{
+		ID:          1,
+		RemainNum:   config.TotalNum,
+		RemainMoney: config.TotalMoney,
+		TotalMoney:  config.TotalMoney,
+		TotalNum:    config.TotalNum,
+		MaxAmount:   config.MaxAmount,
+		P:           config.P,
+	}
 	db.Create(&remain)
 }

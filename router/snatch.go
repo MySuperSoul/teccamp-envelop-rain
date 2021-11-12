@@ -24,7 +24,7 @@ import (
 func SnatchHandler(c *gin.Context) {
 	json_str := make(map[string]int32)
 	if err := c.BindJSON(&json_str); err != nil {
-		c.JSON(http.StatusOK, gin.H{"code": constant.SNATCH_JSON_PARSE_ERROR, "msg": constant.SNATCH_JSON_PARSE_ERROR_MESSAGE, "data": gin.H{}})
+		c.JSON(http.StatusBadRequest, gin.H{"code": constant.SNATCH_JSON_PARSE_ERROR, "msg": constant.SNATCH_JSON_PARSE_ERROR_MESSAGE, "data": gin.H{}})
 		return
 	}
 

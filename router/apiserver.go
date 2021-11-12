@@ -45,7 +45,7 @@ func InitDB() {
 	server.mysql = db.GetMySQLCursor()
 	// generate tables
 	db.GenerateTables(server.mysql)
-	db.SetRemainToDB(server.sysconfig.TotalNum, server.sysconfig.TotalMoney, server.mysql)
+	db.SetRemainToDB(&server.sysconfig, server.mysql)
 	// set config to redis
 	configs.SetConfigToRedis(&server.sysconfig, server.redisdb)
 }

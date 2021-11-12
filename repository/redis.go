@@ -132,7 +132,7 @@ func SnatchScript() *redis.Script {
 }
 
 // KEYS: ["RemainNum", "RemainMoney"]
-// ARGV: [MaxMoney, MinMoney, TimeStamp]
+// ARGV: [MaxMoney, MinMoney, TimeStamp, PacketID]
 func GeneratePacketScript() *redis.Script {
 	return redis.NewScript(`
 	math.randomseed(ARGV[3])
@@ -156,6 +156,7 @@ func GeneratePacketScript() *redis.Script {
 
 	redis.call('SET', KEYS[1], remain_num - 1)
 	redis.call('SET', KEYS[2], remain_money - value)
+	redis.call('HMSET', "packet-" .. ARGV[4], "value", value, "opened", 1)
 	return value
 	`)
 }
