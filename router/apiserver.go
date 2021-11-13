@@ -117,7 +117,6 @@ func APIServerRun() {
 	r.POST("/open", BreakerOpen.Middleware(), OpenHandler)
 	r.POST("/get_wallet_list", BreakerWallet.Middleware(), WalletListHandler)
 	r.POST("/change_configs", ChangeConfigsHandler)
-	r.GET("/flush", FlushDBHandler)
 	r.Run()
 }
 
