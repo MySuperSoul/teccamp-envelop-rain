@@ -7,13 +7,12 @@
 # WORKDIR /root
 # RUN go build -o /root/app
 
-# webhooktest
-
+# webhook test
 FROM cr-cn-beijing.volces.com/group7/centos:7
 # COPY --from=builder /root/app /root/server
 # COPY --from=builder /root/configs/ /root/configs/
 WORKDIR /root
 COPY envelop-rain ./server
 COPY ./configs/ ./configs/
-EXPOSE 7890
+EXPOSE 8080
 CMD /root/server
