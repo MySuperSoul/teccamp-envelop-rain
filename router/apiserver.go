@@ -34,6 +34,7 @@ type APIServer struct {
 	producer    *middleware.KafkaProducer
 	consumer    *middleware.KafkaConsumer
 	logger      *logrus.Logger
+	IDGenerator *common.IDProducer
 }
 
 var server APIServer
@@ -85,6 +86,11 @@ func InitHystrixBreaker() {
 	hystrixStreamHandler.Start()
 }
 
+func InitIDGenerator() {
+	server.IDGenerator = common.NewProducer(0, 0, configs.GlobalConfig.GetInt("common.TotalNum"))
+	go server.IDGenerator.StartProducePacketID()
+}
+
 func init() {
 	// set random seed
 	common.SetRandomSeed()
@@ -96,6 +102,7 @@ func init() {
 	InitKafka()
 	InitLogger()
 	InitHystrixBreaker()
+	InitIDGenerator()
 }
 
 func APIServerRun() {
