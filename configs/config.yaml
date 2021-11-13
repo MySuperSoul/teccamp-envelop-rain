@@ -16,29 +16,15 @@ Redis:
     RedisAddr: redis-cn0224c7295o6276z.redis.ivolces.com:6379
     RedisPassword: rain@Group7
     RedisPoolSize: 2000
-# Database:
-#     UserName: root
-#     PassWord: Rothyu980908
-#     DB_Name: envelop-rain
-#     MysqlAddr: localhost:3306
-
-# Redis:
-#     RedisAddr: localhost:6379
-#     RedisPassword: 
-#     RedisPoolSize: 100
 
 Limiter:
-    SnatchPerSecond: 50000
+    SnatchPerSecond: 30000
     OpenPerSecond: 20000
     WalletPerSecond: 20000
 
 Kafka:
     BrokerAddr: kafka-zpbvh1wawffzt3.cn-beijing.kafka-internal.ivolces.com:9092
     Topic: dbtest
-
-# Kafka:
-#     BrokerAddr: localhost:9092
-#     Topic: dbtest7
 
 Logger:
     LogPath: ./app.log
