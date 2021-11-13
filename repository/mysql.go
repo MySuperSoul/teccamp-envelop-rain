@@ -90,6 +90,14 @@ func UpdateRemainToDB(data map[string]interface{}, db *gorm.DB) {
 	db.Save(&remain)
 }
 
+func UpdateRemainToDBSync(data map[string]interface{}, db *gorm.DB) {
+	var remain DBSysConfig
+	db.Model(&DBSysConfig{}).First(&remain)
+	remain.RemainMoney -= data["money"].(int64)
+	remain.RemainNum -= int32(data["num"].(int))
+	db.Save(&remain)
+}
+
 func SetRemainToDB(config *configs.SystemConfig, db *gorm.DB) {
 	remain := DBSysConfig{
 		ID:          1,

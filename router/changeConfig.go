@@ -60,5 +60,5 @@ func ChangeConfigsHandler(c *gin.Context) {
 		"money": diffMoney,
 		"num":   0,
 	}
-	db.UpdateRemainToDB(info, server.mysql)
+	db.UpdateRemainToDBSync(info, server.mysql)
 }
