@@ -94,6 +94,7 @@ func UpdateRemainToDBSync(data map[string]interface{}, db *gorm.DB) {
 	var remain DBSysConfig
 	db.Model(&DBSysConfig{}).First(&remain)
 	remain.RemainMoney -= data["money"].(int64)
+	remain.TotalMoney -= data["money"].(int64)
 	remain.RemainNum -= int32(data["num"].(int))
 	db.Save(&remain)
 }
