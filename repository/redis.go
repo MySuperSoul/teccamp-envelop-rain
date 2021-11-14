@@ -169,7 +169,10 @@ func GenerateChangeScript() *redis.Script {
 		return -1
 	end
 	local newkmoney=kmoney - ARGV[1]
-	redis.call('SET',KEYS[1],newkmoney)
+	redis.call('SET', KEYS[1], newkmoney)
+
+	local total = tonumber(redis.call('GET', KEYS[2]))
+	redis.call('SET', KEYS[2], total - ARGV[1])
 	return 1
 	`)
 }
