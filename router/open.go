@@ -20,7 +20,7 @@ type uid_envelopid struct {
 
 func OpenHandler(c *gin.Context) {
 	var pair_id uid_envelopid
-	if err := c.ShouldBindJSON(&pair_id); err != nil {
+	if err := c.BindJSON(&pair_id); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"code": constant.OPEN_JSON_PARSE_ERROR, "msg": constant.OPEN_JSON_PARSE_ERROR_MESSAGE, "data": gin.H{}})
 		return
 	}

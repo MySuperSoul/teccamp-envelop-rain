@@ -25,7 +25,7 @@ import (
  */
 func ChangeConfig(c *gin.Context, diffMoney int64) int {
 	changeScript := db.GenerateChangeScript()
-	ret, err := changeScript.Run(server.redisdb, []string{"RemainMoney"}, diffMoney).Result()
+	ret, err := changeScript.Run(server.redisdb, []string{"RemainMoney", "TotalMoney"}, diffMoney).Result()
 	if err != nil || ret.(int64) == -1 {
 		server.logger.Debug(err)
 		c.JSON(http.StatusOK, gin.H{"code": constant.CHANGE_INVALID, "msg": constant.CHANGE_INVALID_MESSAGE, "data": gin.H{}})
@@ -40,7 +40,7 @@ type money_setting struct {
 
 func ChangeConfigsHandler(c *gin.Context) {
 	var setting money_setting
-	if err := c.ShouldBindJSON(&setting); err != nil {
+	if err := c.BindJSON(&setting); err != nil || setting.NewTotalmoney <= 0 {
 		c.JSON(http.StatusOK, gin.H{"code": constant.CHANGE_JSON_PARSE_ERROR, "msg": constant.CHANGE_JSON_PARSE_ERROR_MESSAGE})
 		return
 	}
