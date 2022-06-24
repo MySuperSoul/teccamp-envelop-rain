@@ -40,5 +40,5 @@ go build && ./envelop-rain
 **Open接口压测结果：5286QPS**
 ![20211129220338](https://i.loli.net/2021/11/29/rkxPXsdqBtwFEjm.png)
 
-**Open接口压测结果：11918QPS**
+**get_wallet_list接口压测结果：11918QPS**
 ![20211129220406](https://i.loli.net/2021/11/29/6Spf8rwVHUWienA.png)
